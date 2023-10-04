@@ -34,7 +34,7 @@ def run_discord_bot():
             await send_message(message, user_message, True)
         else:
             await send_message(message, user_message, False)
-            
+
 
 
     client.run(TOKEN)

@@ -65,7 +65,8 @@ def wordle_helper(guess, hidden_word):
 '''
 DESC: checks if a user's guess is valid and matches the hidden word. See below for validity checks. Note: this function does not
 track guess count.
-PARAMS: user's guess (guess), hidden word (hidden_word), dictionary of valid guesses and results in current game (guessed_words)
+PARAMS: user's guess (guess), hidden word (hidden_word), dictionary of valid guesses and results in current game (guessed_words),
+dictionary of valid words (d)
 RETURNS: (error_code, ["-", "-", "-", "-", "-"]), where:
     error_code 0 = guess is correct
     error_code 1 = guess is valid but incorrect
@@ -92,11 +93,11 @@ def wordle(guess, hidden_word, guessed_words, d):
     for character in guess:
         if not character.isalpha():
             return (4, ["-", "-", "-", "-", "-"])
+    # convert guess to all lowercase
+    guess = guess.lower()
     # guess is not a real word
     if not d.check(guess):
         return (5, ["-", "-", "-", "-", "-"])
-    # convert guess to all lowercase
-    guess = guess.lower()
     # guess has been tried already in the current game
     if guess in guessed_words:
         return (6, guessed_words[guess])
@@ -116,7 +117,7 @@ def wordle(guess, hidden_word, guessed_words, d):
 
 
 '''
-Gnerates a random word by joining 5 random characters and checking if result is a word
+Generates a random word by joining 5 random characters and checking if result is a word
 Has an optional mode to track execution time and attempts
 
 PARAM d dictionary of english words
@@ -152,14 +153,15 @@ See first comment block for desc
 def main():
     d = enchant.Dict("en_US")
     hidden_word = random_word(d)
+    print("Hidden Word:", hidden_word)
     guessed_words = dict()
-    #word_list = set()
 
     guess = input("Enter a guess (-1 to exit)...\n")
     while (guess != "-1"):
         wordle_result = wordle(guess, hidden_word, guessed_words, d)
         if wordle_result[0] == 0:
             print("wordle(): guess is valid and CORRECT", wordle_result[1])
+            print('\nThanks for playing! You got %s in %d (valid & distinct) tries.\n' % (hidden_word, len(guessed_words) + 1))
             break
         elif wordle_result[0] == 1:
             print("wordle(): guess is valid but INCORRECT", wordle_result[1])
@@ -176,7 +178,6 @@ def main():
         else:
             print("wordle(): ERROR")
         guess = input("Enter another guess...\n")
-    print('\nThanks for playing! You got %s in %d tries.\n' % (hidden_word, len(guessed_words)))
 
 if __name__ == "__main__":
     # moved code to main() for testing purposes

@@ -21,6 +21,7 @@ RETURNS: (success_boolean, ["-", "-", "-", "-", "-"]), where:
 '''
 #TODO: test this more
 def wordle_helper(guess, hidden_word):
+    guess = guess.lower()
     hidden_word = hidden_word.lower()
     # guess is correct
     if guess == hidden_word:
@@ -65,7 +66,9 @@ def wordle_helper(guess, hidden_word):
 '''
 DESC: checks if a user's guess is valid and matches the hidden word. See below for validity checks. Note: this function does not
 track guess count.
-PARAMS: user's guess (guess), hidden word (hidden_word), dictionary of valid guesses and results in current game (guessed_words),
+PARAMS: guess - user's guess
+        hidden_word - hidden word
+        guessed_words - dictionary of valid guesses and results in current game
 dictionary of valid words (d)
 RETURNS: (error_code, ["-", "-", "-", "-", "-"]), where:
     error_code 0 = guess is correct
@@ -93,11 +96,11 @@ def wordle(guess, hidden_word, guessed_words, d):
     for character in guess:
         if not character.isalpha():
             return (4, ["-", "-", "-", "-", "-"])
+    # guess is not a real word
+    if not d.check(guess.upper()):
+        return (5, ["-", "-", "-", "-", "-"])
     # convert guess to all lowercase
     guess = guess.lower()
-    # guess is not a real word
-    if not d.check(guess):
-        return (5, ["-", "-", "-", "-", "-"])
     # guess has been tried already in the current game
     if guess in guessed_words:
         return (6, guessed_words[guess])
@@ -117,18 +120,17 @@ def wordle(guess, hidden_word, guessed_words, d):
 
 
 '''
-Generates a random word by joining 5 random characters and checking if result is a word
+DESC: Generates a random word by joining 5 random characters and checking if result is a word.
 Has an optional mode to track execution time and attempts
 
-PARAM d dictionary of english words
-PARAM Mode enables test mode, false by default
+PARAMS: d - dictionary of english words
+        Mode - enables test mode, false by default
 
 PRINTS If in test mode: the word, attempts, and execution time in seconds
 
 RETURNS a random word
-
-TODO come up with a more efficient way to do this
 '''
+#TODO come up with a more efficient way to do this
 def random_word(d, Mode=False):
         start_time = time.time()
         count = 0
@@ -147,8 +149,7 @@ def random_word(d, Mode=False):
         return word
         
 '''
-Code moved from auto-run to function so Nahuel could bypass and test things
-See first comment block for desc
+DESC: wordle test function
 '''
 def main():
     d = enchant.Dict("en_US")
@@ -180,7 +181,6 @@ def main():
         guess = input("Enter another guess...\n")
 
 if __name__ == "__main__":
-    # moved code to main() for testing purposes
     print("Running wordle()...")
     main()
 

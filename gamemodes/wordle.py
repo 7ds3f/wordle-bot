@@ -9,7 +9,9 @@ Baseline Wordle algorithm functions. Checks if a guess is valid and correct.
 
 '''
 DESC: checks if a user's guess matches the hidden word.
+
 PARAMS: user's guess (guess), hidden word (hidden_word)
+
 RETURNS: (success_boolean, ["-", "-", "-", "-", "-"]), where:
     success_boolean True = guess and hidden_word match
     success_boolean False = guess and hidden_word do NOT match
@@ -66,10 +68,12 @@ def wordle_helper(guess, hidden_word):
 '''
 DESC: checks if a user's guess is valid and matches the hidden word. See below for validity checks. Note: this function does not
 track guess count.
+
 PARAMS: guess - user's guess
         hidden_word - hidden word
         guessed_words - dictionary of valid guesses and results in current game
 dictionary of valid words (d)
+
 RETURNS: (error_code, ["-", "-", "-", "-", "-"]), where:
     error_code 0 = guess is correct
     error_code 1 = guess is valid but incorrect
@@ -126,9 +130,9 @@ Has an optional mode to track execution time and attempts
 PARAMS: d - dictionary of english words
         Mode - enables test mode, false by default
 
-PRINTS If in test mode: the word, attempts, and execution time in seconds
+PRINTS: If in test mode: the word, attempts, and execution time in seconds
 
-RETURNS a random word
+RETURNS: a random word
 '''
 #TODO come up with a more efficient way to do this
 def random_word(d, Mode=False):
@@ -147,7 +151,18 @@ def random_word(d, Mode=False):
             print('Got [ %s ] in [ %d ] tries, took [ %s ] seconds' % (word, count, time.time()-start_time))
         
         return word
-        
+
+'''
+DESC: converts a wordle_result from the wordle() function into colored letters formatted for Discord
+
+PARMS: wordle_result - result from wordle() function
+
+RETURNS: string of colored letters corresponding to wordle_result
+'''
+#TODO: not sure if this will be necessary
+def result_format(guess, wordle_result):
+    return
+
 '''
 DESC: wordle test function
 '''

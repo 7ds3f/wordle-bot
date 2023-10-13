@@ -1,5 +1,8 @@
+import sys
 import discord
 from discord.ext import commands
+sys.path.append("gamemodes")
+import standard_wordle
 #import responses
 
 '''
@@ -10,23 +13,6 @@ async def send_message(message, user_message, is_private):
     except Exception as e:
         print(e)
 '''
-
-# container for gamemode buttons
-class GamemodeSelectionButtons(discord.ui.View):
-        def __init__(self, *, timeout=180):
-            super().__init__(timeout=timeout)
-        @discord.ui.button(label="Standard Wordle",style=discord.ButtonStyle.primary)
-        async def standard_wordle_button(self,interaction:discord.Interaction,button:discord.ui.Button):
-            await interaction.response.edit_message(content=f"Selected Standard Wordle")
-        @discord.ui.button(label="Daily Wordle",style=discord.ButtonStyle.primary)
-        async def daily_wordle_button(self,interaction:discord.Interaction,button:discord.ui.Button):
-            await interaction.response.edit_message(content=f"Selected Daily Wordle")
-        @discord.ui.button(label="Feudle",style=discord.ButtonStyle.primary)
-        async def feudle_button(self,interaction:discord.Interaction,button:discord.ui.Button):
-            await interaction.response.edit_message(content=f"Selected Feudle")
-        @discord.ui.button(label="Multiplayer Wordle",style=discord.ButtonStyle.primary)
-        async def multiplayer_wordle_button(self,interaction:discord.Interaction,button:discord.ui.Button):
-            await interaction.response.edit_message(content=f"Selected Multiplayer Wordle")
 
 # start the bot
 def run_discord_bot():
@@ -39,14 +25,37 @@ def run_discord_bot():
     @bot.event
     async def on_ready():
         print(f'{bot.user} is running!')
-
+    
     # !newgame command handler
     @bot.command(name="newgame")
     async def _newgame(ctx):
+        # container for gamemode buttons
+        class GamemodeSelectionButtons(discord.ui.View):
+            def __init__(self, *, timeout=180):
+                super().__init__(timeout=timeout)
+            @discord.ui.button(label="Standard Wordle",style=discord.ButtonStyle.primary)
+            async def standard_wordle_button(self,interaction:discord.Interaction,button:discord.ui.Button):
+                await interaction.response.edit_message(content=f"Selected Standard Wordle")
+                await standard_wordle.run(ctx)
+            @discord.ui.button(label="Daily Wordle",style=discord.ButtonStyle.primary)
+            async def daily_wordle_button(self,interaction:discord.Interaction,button:discord.ui.Button):
+                await interaction.response.edit_message(content=f"Selected Daily Wordle")
+            @discord.ui.button(label="Feudle",style=discord.ButtonStyle.primary)
+            async def feudle_button(self,interaction:discord.Interaction,button:discord.ui.Button):
+                await interaction.response.edit_message(content=f"Selected Feudle")
+            @discord.ui.button(label="Multiplayer Wordle",style=discord.ButtonStyle.primary)
+            async def multiplayer_wordle_button(self,interaction:discord.Interaction,button:discord.ui.Button):
+                await interaction.response.edit_message(content=f"Selected Multiplayer Wordle")
+        
         await ctx.send(
             "Select a gamemode:",view=GamemodeSelectionButtons()
         )
     
+    # !sw (standard wordle) command handler
+    @bot.command(name="sw")
+    async def _sw(ctx):
+        await standard_wordle.run(ctx)
+
     '''
     @bot.event
     async def on_message(message):

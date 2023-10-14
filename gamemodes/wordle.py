@@ -3,6 +3,90 @@ import random
 import string
 import time
 
+# dictionaries for custom emoji letter display
+gray_letters_dict = {
+    "a": "<:a_gray:1162435739192148038>",
+    "b": "<:b_gray:1162437701723750574>",
+    "c": "<:c_gray:1162437702990446744>",
+    "d": "<:d_gray:1162437706807267390>",
+    "e": "<:e_gray:1162437709172846615>",
+    "f": "<:f_gray:1162437711685226626>",
+    "g": "<:g_gray:1162437714201808896>",
+    "h": "<:h_gray:1162437716240240660>",
+    "i": "<:i_gray:1162437718345777244>",
+    "j": "<:j_gray:1162437719461482687>",
+    "k": "<:k_gray:1162437720539402240>",
+    "l": "<:l_gray:1162437721499910376>",
+    "m": "<:m_gray:1162437723223773286>",
+    "n": "<:n_gray:1162437726533058570>",
+    "o": "<:o_gray:1162437867491053689>",
+    "p": "<:p_gray:1162437901334876250>",
+    "q": "<:q_gray:1162437730114998312>",
+    "r": "<:r_gray:1162437939083624548>",
+    "s": "<:s_gray:1162437734636470464>",
+    "t": "<:t_gray:1162438000190427277>",
+    "u": "<:u_gray:1162437737371144322>",
+    "v": "<:v_gray:1162438118142644294>",
+    "w": "<:w_gray:1162438154549219328>",
+    "x": "<:x_gray:1162437740596580482>",
+    "y": "<:y_gray:1162438311814631492>",
+    "z": "<:z_gray:1162438313370730546>"
+}
+yellow_green_letters_dict = {
+    "a": "<:a_yellow:1162452541783691456>",
+    "b": "<:b_yellow:1162452544702914580>",
+    "c": "<:c_yellow:1162452547391459538>",
+    "d": "<:d_yellow:1162452550558167152>",
+    "e": "<:e_yellow:1162452553385123870>",
+    "f": "<:f_yellow:1162452554727297044>",
+    "g": "<:g_yellow:1162452555968815278>",
+    "h": "<:h_yellow:1162452593780465705>",
+    "i": "<:i_yellow:1162452595428827238>",
+    "j": "<:j_yellow:1162452597349826851>",
+    "k": "<:k_yellow:1162452598410973284>",
+    "l": "<:l_yellow:1162452600965308537>",
+    "m": "<:m_yellow:1162452605071544340>",
+    "n": "<:n_yellow:1162452649648590939>",
+    "o": "<:o_yellow:1162452651787690065>",
+    "p": "<:p_yellow:1162452653645758564>",
+    "q": "<:q_yellow:1162452655440920626>",
+    "r": "<:r_yellow:1162452657638740090>",
+    "s": "<:s_yellow:1162452660562182204>",
+    "t": "<:t_yellow:1162452755315703891>",
+    "u": "<:u_yellow:1162452756813066280>",
+    "v": "<:v_yellow:1162452758549499927>",
+    "w": "<:w_yellow:1162452761166761994>",
+    "x": "<:x_yellow:1162452764144701520>",
+    "y": "<:y_yellow:1162497511307608076>",
+    "z": "<:z_yellow:1162497513140527124>",
+    "A": "<:a_green:1162498445790171176>",
+    "B": "<:b_green:1162498447715352586>",
+    "C": "<:c_green:1162498448600334376>",
+    "D": "<:d_green:1162498449581817916>",
+    "E": "<:e_green:1162498450559086652>",
+    "F": "<:f_green:1162498451850936412>",
+    "G": "<:g_green:1162498452824019127>",
+    "H": "<:h_green:1162498487515107339>",
+    "I": "<:i_green:1162498489025036360>",
+    "J": "<:j_green:1162498490216235038>",
+    "K": "<:k_green:1162498490853765221>",
+    "L": "<:l_green:1162498492984459294>",
+    "M": "<:m_green:1162498493991092244>",
+    "N": "<:n_green:1162498538463314073>",
+    "O": "<:o_green:1162498539499290824>",
+    "P": "<:p_green:1162498540711456871>",
+    "Q": "<:q_green:1162498542246559824>",
+    "R": "<:r_green:1162498543496474654>",
+    "S": "<:s_green:1162498545094512713>",
+    "T": "<:t_green:1162498568460972082>",
+    "U": "<:u_green:1162498569308213268>",
+    "V": "<:v_green:1162498570759454730>",
+    "W": "<:w_green:1162498571908677682>",
+    "X": "<:x_green:1162498573561237594>",
+    "Y": "<:y_green:1162498575016677510>",
+    "Z": "<:z_green:1162498576283357184>"
+}
+
 '''
 Baseline Wordle algorithm functions. Checks if a guess is valid and correct.
 '''
@@ -21,7 +105,6 @@ RETURNS: (success_boolean, ["-", "-", "-", "-", "-"]), where:
     a lowercase letter indicates that letter is present in the hidden_word but in the wrong place
     an uppercase letter indicates that letter is present in the hidden_word and in the right place
 '''
-#TODO: test this more
 def wordle_helper(guess, hidden_word):
     guess = guess.lower()
     hidden_word = hidden_word.lower()
@@ -115,11 +198,12 @@ def wordle(guess, hidden_word, guessed_words, d):
         compare_result = wordle_helper(guess, hidden_word)
         # guess is correct
         if compare_result[0]:
+            guessed_words.update({guess : (compare_result[1], result_format(guess, compare_result))})
             return (0, compare_result[1])
         # guess is incorrect
         else:
             # add guess and result to guessed_words
-            guessed_words.update({guess : compare_result[1]})
+            guessed_words.update({guess : (compare_result[1], result_format(guess, compare_result))})
             return (1, compare_result[1])
 
 
@@ -159,9 +243,20 @@ PARMS: wordle_result - result from wordle() function
 
 RETURNS: string of colored letters corresponding to wordle_result
 '''
-#TODO: not sure if this will be necessary
 def result_format(guess, wordle_result):
-    return
+    global gray_letters_dict
+    global yellow_green_letters_dict
+    result = ""
+    if wordle_result[1][0] == "-":
+            result += (" " + gray_letters_dict[guess[0]])
+    else:
+        result += (" " + yellow_green_letters_dict[wordle_result[1][0]])
+    for index in range(1, len(wordle_result[1])):
+        if wordle_result[1][index] == "-":
+            result += (" " + gray_letters_dict[guess[index]])
+        else:
+            result += (" " + yellow_green_letters_dict[wordle_result[1][index]])
+    return result
 
 '''
 DESC: wordle test function
@@ -176,11 +271,11 @@ def main():
     while (guess != "-1"):
         wordle_result = wordle(guess, hidden_word, guessed_words, d)
         if wordle_result[0] == 0:
-            print("wordle(): guess is valid and CORRECT", wordle_result[1])
-            print('\nThanks for playing! You got %s in %d (valid & distinct) tries.\n' % (hidden_word, len(guessed_words) + 1))
+            print("wordle(): guess is valid and CORRECT", guessed_words[guess])
+            print('\nThanks for playing! You got %s in %d (valid & distinct) tries.\n' % (hidden_word, len(guessed_words)))
             break
         elif wordle_result[0] == 1:
-            print("wordle(): guess is valid but INCORRECT", wordle_result[1])
+            print("wordle(): guess is valid but INCORRECT", guessed_words[guess])
         elif wordle_result[0] == 2:
             print("wordle(): guess is TOO LONG")
         elif wordle_result[0] == 3:
@@ -190,7 +285,7 @@ def main():
         elif wordle_result[0] == 5:
             print("wordle(): guess is NOT A REAL WORD")
         elif wordle_result[0] == 6:
-            print("wordle(): guess has been ALREADY GUESSED", wordle_result[1])
+            print("wordle(): guess has been ALREADY GUESSED", guessed_words[guess])
         else:
             print("wordle(): ERROR")
         guess = input("Enter another guess...\n")

@@ -21,91 +21,17 @@ def run_discord_bot():
     intents.message_content = True
     bot = commands.Bot(command_prefix='!', intents=intents)
     users = set()
-
-    #TODO: maybe use text formatting instead of custom emojis?
-    gray_letters_dict = {
-        "a": "<:a_gray:1162435739192148038>",
-        "b": "<:b_gray:1162437701723750574>",
-        "c": "<:c_gray:1162437702990446744>",
-        "d": "<:d_gray:1162437706807267390>",
-        "e": "<:e_gray:1162437709172846615>",
-        "f": "<:f_gray:1162437711685226626>",
-        "g": "<:g_gray:1162437714201808896>",
-        "h": "<:h_gray:1162437716240240660>",
-        "i": "<:i_gray:1162437718345777244>",
-        "j": "<:j_gray:1162437719461482687>",
-        "k": "<:k_gray:1162437720539402240>",
-        "l": "<:l_gray:1162437721499910376>",
-        "m": "<:m_gray:1162437723223773286>",
-        "n": "<:n_gray:1162437726533058570>",
-        "o": "<:o_gray:1162437867491053689>",
-        "p": "<:p_gray:1162437901334876250>",
-        "q": "<:q_gray:1162437730114998312>",
-        "r": "<:r_gray:1162437939083624548>",
-        "s": "<:s_gray:1162437734636470464>",
-        "t": "<:t_gray:1162438000190427277>",
-        "u": "<:u_gray:1162437737371144322>",
-        "v": "<:v_gray:1162438118142644294>",
-        "w": "<:w_gray:1162438154549219328>",
-        "x": "<:x_gray:1162437740596580482>",
-        "y": "<:y_gray:1162438311814631492>",
-        "z": "<:z_gray:1162438313370730546>"
-    }
-    yellow_green_letters_dict = {
-        "a": "<:a_yellow:1162452541783691456>",
-        "b": "<:b_yellow:1162452544702914580>",
-        "c": "<:c_yellow:1162452547391459538>",
-        "d": "",
-        "e": "",
-        "f": "",
-        "g": "",
-        "h": "",
-        "i": "",
-        "j": "",
-        "k": "",
-        "l": "",
-        "m": "",
-        "n": "",
-        "o": "",
-        "p": "",
-        "q": "",
-        "r": "",
-        "s": "",
-        "t": "",
-        "u": "",
-        "v": "",
-        "w": "",
-        "x": "",
-        "y": "",
-        "z": "",
-        "A": "",
-        "B": "",
-        "C": "",
-        "D": "",
-        "E": "",
-        "F": "",
-        "G": "",
-        "H": "",
-        "I": "",
-        "J": "",
-        "K": "",
-        "L": "",
-        "M": "",
-        "N": "",
-        "O": "",
-        "P": "",
-        "Q": "",
-        "R": "",
-        "S": "",
-        "T": "",
-        "U": "",
-        "V": "",
-        "W": "",
-        "X": "",
-        "Y": "",
-        "Z": ""
-    }
     
+    # embed for duplicate game instance warning
+    async def send_in_game_warn_embed(ctx, user):
+        embed=discord.Embed(
+            title="You're already in a Wordle game!",
+            description="Use \"!q\" to quit current game, " + user.mention + ".",
+            color=discord.Color.red()
+        )
+        await ctx.send(embed=embed)
+
+
     # bot startup greeting
     @bot.event
     async def on_ready():
@@ -123,6 +49,7 @@ def run_discord_bot():
                 await interaction.response.edit_message(content=f"Selected Standard Wordle")
                 if interaction.user in users:
                     print(f"[WARN] {interaction.user} tried to start a duplicate Wordle game instance...")
+                    await send_in_game_warn_embed(ctx, interaction.user)
                 else:
                     users.add(interaction.user)
                     await standard_wordle.run(ctx, interaction, users)
@@ -145,6 +72,7 @@ def run_discord_bot():
     async def _sw(ctx):
         if ctx.author in users:
             print(f"[WARN] {ctx.author} tried to start a duplicate Wordle game instance...")
+            await send_in_game_warn_embed(ctx, ctx.author)
         else:   
             users.add(ctx.author)
             await standard_wordle.run(ctx, None, users)
@@ -155,10 +83,15 @@ def run_discord_bot():
         return
     
     # !greet command handler
-    # print custom emoji example
+    # print custom emoji example with embed
     @bot.command(name="greet")
     async def _greet(ctx):
-        await ctx.send(f"{gray_letters_dict['h']} {gray_letters_dict['i']}")
+        embed = discord.Embed(
+            title="Hello!",
+            description="Thanks for using BOTTLE!",
+            color=discord.Color.blurple()
+        )
+        await ctx.send(embed=embed)
 
     '''
     @bot.event

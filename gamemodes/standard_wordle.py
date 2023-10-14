@@ -55,7 +55,7 @@ async def run(ctx, interaction, users):
         await ctx.send(embed=embed, reference=guess_obj)
 
     # embed for game lose
-    async def send_lose_embed(ctx, guessed_words, guess, guess_obj):
+    async def send_lose_embed(ctx, guessed_words, guess, guess_obj, hidden_word):
         embed=discord.Embed(
             title="Standard Wordle",
             color=discord.Color.red(),
@@ -63,7 +63,7 @@ async def run(ctx, interaction, users):
         )
         for guess in guessed_words.keys():
             embed.add_field(name="", value=guessed_words[guess][1], inline=False)
-        embed.add_field(name="Out of Guesses!", value="", inline=False)
+        embed.add_field(name="Out of Guesses!", value="Word was " + hidden_word.upper(), inline=False)
         await ctx.send(embed=embed, reference=guess_obj)
     
     # embed for invalid guess
@@ -125,6 +125,6 @@ async def run(ctx, interaction, users):
             else:
                 await send_invalid_embed(ctx, wordle_result, guess)
     print(f"[INFO] {ctx.author} lost their Wordle game (mode=Standard Wordle, hidden_word={hidden_word})")
-    await send_lose_embed(ctx, guessed_words, guesses_rem, guess)
+    await send_lose_embed(ctx, guessed_words, guesses_rem, guess, hidden_word)
     users.remove(ctx.author)
     return

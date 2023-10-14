@@ -112,6 +112,7 @@ async def run(ctx, interaction, users):
         # check the guess with the wordle function
         wordle_result = wordle.wordle(guess.content, hidden_word, guessed_words, d)
         if wordle_result[0] == 0:
+            guesses_rem -= 1
             print(f"[INFO] {ctx.author} won their Wordle game (mode=Standard Wordle, hidden_word={hidden_word})")
             await send_win_embed(ctx, guessed_words, guesses_rem, guess.content, guess)
             users.remove(ctx.author)

@@ -248,7 +248,7 @@ PRINTS: If in test mode: the word, attempts, and execution time in seconds
 
 RETURNS: a random word
 '''
-def daily_word(d, Mode=False):
+def daily_word():
     # set the seed
     seed = time.strftime("%d/%m/%Y")
     random.seed(seed)
@@ -258,7 +258,7 @@ def daily_word(d, Mode=False):
     word = linecache.getline("sgb-words.txt", random_num)
     # remove the newline character from the word
     word = word[:-1]
-    return word
+    return word.upper()
 
 
 '''

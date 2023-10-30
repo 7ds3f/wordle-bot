@@ -1,20 +1,25 @@
+'''
+Standard Wordle gamemode, interactable through Discord.
+'''
+
 import enchant
 import discord
 import wordle
 
 class StandardWordle:
     """
-    A class used to represent a Standard Wordle game.
+    A class used to represent a Standard Wordle game. Includes Daily Wordle functionality.
     """
 
-    def __init__(self):
+    def __init__(self, daily):
         """
         Constructs a Standard Wordle game.
 
         Args:
-            hidden_word (str): The word the player is trying to guess.
+            daily (bool): Whether or not to use a randomly generated word.
         """
-        
+        self.daily = daily
+        'If True, use daily Wordle Word. If False, generate a random word'
         self.remaining_attempts = 6
         'The number of attempts the player has left to guess the hidden word.'
         self.has_guessed_word = False
@@ -25,7 +30,10 @@ class StandardWordle:
         'The player\'s history of guessed words.'
         self.dictionary = enchant.Dict("en_US")
         'The dictionary of valid words for the current game'
-        self.hidden_word = wordle.random_word(self.dictionary)
+        if daily:
+            self.hidden_word = wordle.daily_word()
+        else:
+            self.hidden_word = wordle.random_word(self.dictionary)
         'The word the player is trying to guess.'
 
     def is_terminated(self) -> bool:
@@ -78,23 +86,27 @@ class StandardWordle:
     def __use_attempt(self):
         self.remaining_attempts -= 1
 
-class ResponseSender:
-    def __init__(self, ctx):
+class StandardWordleResponseSender:
+    """
+    Class used to represent a game status Discord embed.
+    """
+    def __init__(self, ctx, gamemode):
         self.ctx = ctx
+        self.gamemode = gamemode
     
-    # embed for game start
+    # send embed for game start
     async def send_start_embed(self, user):
         embed=discord.Embed(
-            title="Standard Wordle",
+            title=self.gamemode,
             color=discord.Color.blurple(),
             description="Type a guess, " + user.mention + "!"
         )
         await self.ctx.send(embed=embed)
 
-    # embed for ongoing game status
+    # send embed for ongoing game status
     async def send_game_embed(self, guessed_words, guess_obj, guesses_rem):
         embed=discord.Embed(
-            title="Standard Wordle",
+            title=self.gamemode,
             color=discord.Color.blurple(),
             description="Incorrect. Type another guess!"
         )
@@ -103,7 +115,7 @@ class ResponseSender:
         embed.add_field(name="Guess #", value=str(6 - guesses_rem) + "/6", inline=False)
         await self.ctx.send(embed=embed, reference=guess_obj)
 
-    # embed for game cancellation
+    # send embed for game cancellation
     async def send_cancel_embed(self, guess_obj):
         embed=discord.Embed(
             title="Game Cancelled",
@@ -111,10 +123,10 @@ class ResponseSender:
         )
         await self.ctx.send(embed=embed, reference=guess_obj)
 
-    # embed for game win
+    # send embed for game win
     async def send_win_embed(self, guessed_words, guess_obj, guesses_rem):
         embed=discord.Embed(
-            title="Standard Wordle",
+            title=self.gamemode,
             color=discord.Color.green(),
             description="You Won!"
         )
@@ -123,10 +135,10 @@ class ResponseSender:
         embed.add_field(name="Guesses Taken", value=str(6 - guesses_rem) + "/6", inline=False)
         await self.ctx.send(embed=embed, reference=guess_obj)
 
-    # embed for game lose
+    # send embed for game lose
     async def send_lose_embed(self, guessed_words, guess_obj, hidden_word):
         embed=discord.Embed(
-            title="Standard Wordle",
+            title=self.gamemode,
             color=discord.Color.red(),
             description="Game Over!"
         )
@@ -135,7 +147,7 @@ class ResponseSender:
         embed.add_field(name="Out of Guesses!", value="Word was " + hidden_word.upper(), inline=False)
         await self.ctx.send(embed=embed, reference=guess_obj)
     
-     # embed for invalid guess
+     # send embed for invalid guess
     async def send_invalid_embed(self, wordle_result, guess_obj):
         embed=discord.Embed(
             title="Invalid Guess!",
@@ -154,7 +166,7 @@ class ResponseSender:
             embed.add_field(name="Reason", value="Guess has ALREADY BEEN TRIED")
         await self.ctx.send(embed=embed, reference=guess_obj)
 
-# discord interaction handler
+# starts Standard Wordle game instance
 async def run(ctx, interaction, users):
     
     # check if the guess appears in the same channel as the game
@@ -169,21 +181,22 @@ async def run(ctx, interaction, users):
             return message
 
     # start a new Standard Wordle game
-    game = StandardWordle()
+    game = StandardWordle(False)
 
     # initialize a new reponseSender for the current game
-    sender = ResponseSender(ctx)
+    sender = StandardWordleResponseSender(ctx, "Standard Wordle")
 
     # check how the current game a was started
     # game was started via the !newgame menu
     if interaction != None:
         print(f"[INFO] {interaction.user} started a new Wordle game (mode=Standard Wordle, hidden_word={game.get_hidden_word()})")
         await sender.send_start_embed(interaction.user)
-    
+    # game was started via the !sw command
     else:
         print(f"[INFO] {ctx.author} started a new Wordle game (mode=Standard Wordle, hidden_word={game.get_hidden_word()})")
         await sender.send_start_embed(ctx.author)
 
+    # continue listening for guesses while the game is active
     while not game.is_terminated():
         guess = await ctx.bot.wait_for("message", check=check_guess)
         # ignore empty guesses and guesses that start with "!", unless it's the quit command ("!q")
@@ -195,12 +208,16 @@ async def run(ctx, interaction, users):
                 return
             guess = await ctx.bot.wait_for("message", check=check_guess)
 
+        # access wordle response for guess
         wordle_result = game.make_guess(guess.content)
+
+        # guess is correct
         if wordle_result[0] == 0:
             print(f"[INFO] {ctx.author} won their Wordle game (mode=Standard Wordle, hidden_word={game.get_hidden_word()})")
             await sender.send_win_embed(game.get_history(), guess, game.get_guesses_rem())
-            users.remove(ctx.author)
+            users.remove(ctx.author) #remove user from bot's active users list
             return
+        # guess is incorrect
         else:
             if wordle_result[0] == 1:
                 if not game.is_terminated():
@@ -210,5 +227,5 @@ async def run(ctx, interaction, users):
     
     print(f"[INFO] {ctx.author} lost their Wordle game (mode=Standard Wordle, hidden_word={game.get_hidden_word()})")
     await sender.send_lose_embed(game.get_history(), guess, game.get_hidden_word())
-    users.remove(ctx.author)
+    users.remove(ctx.author) #remove user from bot's active users list
     return

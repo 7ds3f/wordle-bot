@@ -3,6 +3,7 @@ import discord
 from discord.ext import commands
 sys.path.append("gamemodes")
 import standard_wordle
+import daily_wordle
 #import responses
 
 '''
@@ -56,6 +57,12 @@ def run_discord_bot():
             @discord.ui.button(label="Daily Wordle",style=discord.ButtonStyle.primary)
             async def daily_wordle_button(self,interaction:discord.Interaction,button:discord.ui.Button):
                 await interaction.response.edit_message(content=f"Selected Daily Wordle")
+                if interaction.user in users:
+                    print(f"[WARN] {interaction.user} tried to start a duplicate Wordle game instance...")
+                    await send_in_game_warn_embed(ctx, interaction.user)
+                else:
+                    users.add(interaction.user)
+                    await daily_wordle.run(ctx, interaction, users)
             @discord.ui.button(label="Feudle",style=discord.ButtonStyle.primary)
             async def feudle_button(self,interaction:discord.Interaction,button:discord.ui.Button):
                 await interaction.response.edit_message(content=f"Selected Feudle")
@@ -76,6 +83,16 @@ def run_discord_bot():
         else:   
             users.add(ctx.author)
             await standard_wordle.run(ctx, None, users)
+
+    # !dw (daily wordle) command handler
+    @bot.command(name="dw")
+    async def _dw(ctx):
+        if ctx.author in users:
+            print(f"[WARN] {ctx.author} tried to start a duplicate Wordle game instance...")
+            await send_in_game_warn_embed(ctx, ctx.author)
+        else:
+            users.add(ctx.author)
+            await daily_wordle.run(ctx, None, users)
     
     # !q (quit) command handler
     @bot.command(name="q")

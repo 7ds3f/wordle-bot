@@ -1,3 +1,7 @@
+'''
+Wordle algorithm + random word generation functions.
+'''
+
 import enchant
 import random
 import string
@@ -88,10 +92,6 @@ yellow_green_letters_dict = {
 }
 
 '''
-Baseline Wordle algorithm functions. Checks if a guess is valid and correct.
-'''
-
-'''
 DESC: checks if a user's guess matches the hidden word.
 
 PARAMS: user's guess (guess), hidden word (hidden_word)
@@ -180,9 +180,8 @@ def wordle(guess, hidden_word, guessed_words, d):
     if len(guess) < 5:
         return (3, ["-", "-", "-", "-", "-"])
     # guess contains invalid characters
-    for character in guess:
-        if not character.isalpha():
-            return (4, ["-", "-", "-", "-", "-"])
+    if not guess.isalpha():
+        return (4, ["-", "-", "-", "-", "-"])
     # guess is not a real word
     if not d.check(guess.upper()):
         return (5, ["-", "-", "-", "-", "-"])
@@ -198,11 +197,12 @@ def wordle(guess, hidden_word, guessed_words, d):
         compare_result = wordle_helper(guess, hidden_word)
         # guess is correct
         if compare_result[0]:
+            # add guess and text-based + discord fomatted result to guessed_words
             guessed_words.update({guess : (compare_result[1], result_format(guess, compare_result))})
             return (0, compare_result[1])
         # guess is incorrect
         else:
-            # add guess and result to guessed_words
+            # add guess and text-based + discord fomatted result to guessed_words
             guessed_words.update({guess : (compare_result[1], result_format(guess, compare_result))})
             return (1, compare_result[1])
 

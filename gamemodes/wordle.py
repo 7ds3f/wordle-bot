@@ -2,6 +2,7 @@ import enchant
 import random
 import string
 import time
+import linecache
 
 # dictionaries for custom emoji letter display
 gray_letters_dict = {
@@ -235,6 +236,30 @@ def random_word(d, Mode=False):
             print('Got [ %s ] in [ %d ] tries, took [ %s ] seconds' % (word, count, time.time()-start_time))
         
         return word
+
+
+'''
+DESC: Generates a daily word by using the current date as a seed for the random number generator
+
+PARAMS: d - dictionary of english words
+        Mode - enables test mode, false by default
+        
+PRINTS: If in test mode: the word, attempts, and execution time in seconds
+
+RETURNS: a random word
+'''
+def daily_word(d, Mode=False):
+    # set the seed
+    seed = time.strftime("%d/%m/%Y")
+    random.seed(seed)
+    # select a random number from 0 to 5756 (number of 5 letter words in the dictionary)
+    random_num = random.randint(0, 5756)
+    # select the word from sgb-words.txt at the random number
+    word = linecache.getline("sgb-words.txt", random_num)
+    # remove the newline character from the word
+    word = word[:-1]
+    return word
+
 
 '''
 DESC: converts a wordle_result from the wordle() function into colored letters formatted for Discord

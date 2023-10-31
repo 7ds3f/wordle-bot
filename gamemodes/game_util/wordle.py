@@ -37,7 +37,7 @@ def wordle_helper(guess:str, hidden_word:str, game_letters:dict) -> tuple:
     if guess == hidden_word:
         for char in guess:
             result.append(letter.Letter(char, letter.LetterState.GREEN))
-            game_letters[char].set_state(letter.LetterState.GREEN)
+            game_letters[char].set_state(letter.LetterState.GREEN, False)
         return (True, result)
     # guess is NOT correct
     else:

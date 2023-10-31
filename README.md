@@ -1,6 +1,8 @@
-# wordle-bot
-A discord wordle bot.
+# BOTTLE
+A Discord Wordle bot.
 
-This bot requires PyEnchant and Discord to function properly
-to install PyEnchant, use pip install pyenchant in cmd
-to install Discord, use pip install discord in cmd
+Created by EggieVAL, CasterNinja, LucaVits, SoumayahIlias, timcuber37, and 7ds3f.
+
+This bot requires PyEnchant and Discord to function properly.
+To install PyEnchant, use pip install pyenchant in cmd.
+To install Discord, use pip install discord in cmd.

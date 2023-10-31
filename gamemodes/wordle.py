@@ -1,5 +1,5 @@
 '''
-Wordle algorithm + random word generation functions.
+Wordle algorithm + word generation functions.
 '''
 
 import enchant

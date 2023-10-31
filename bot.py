@@ -1,23 +1,16 @@
 import sys
+import os
 import discord
 from discord.ext import commands
+from dotenv import load_dotenv
 sys.path.append("gamemodes")
 import standard_wordle
 import daily_wordle
-#import responses
-
-'''
-async def send_message(message, user_message, is_private):
-    try:
-        response = responses.handle_response(user_message)
-        await message.author.send(response) if is_private else await message.channel.send(response)
-    except Exception as e:
-        print(e)
-'''
 
 # start the bot
 def run_discord_bot():
-    TOKEN = "MTE1NjYwMDYzNjU0NTE3OTY3OQ.G9AnaM.VdVSNB_1w1h2Lwq-u3Dam4wI2HsX31UzLtaHEA"
+    load_dotenv()
+    TOKEN = os.getenv("BOT_TOKEN")
     intents = discord.Intents.default()
     intents.message_content = True
     bot = commands.Bot(command_prefix='!', intents=intents)
@@ -31,7 +24,6 @@ def run_discord_bot():
             color=discord.Color.red()
         )
         await ctx.send(embed=embed)
-
 
     # bot startup greeting
     @bot.event
@@ -109,23 +101,5 @@ def run_discord_bot():
             color=discord.Color.blurple()
         )
         await ctx.send(embed=embed)
-
-    '''
-    @bot.event
-    async def on_message(message):
-        if message.author == bot.user:
-            return
-        username = str(message.author)
-        user_message = str(message.content)
-        channel = str(message.channel)
-
-        print(f'{username}: {user_message} ({channel})')
-
-        if user_message.startswith("?"):
-            user_message = user_message[1:]
-            await send_message(message, user_message, True)
-        else:
-            await send_message(message, user_message, False)
-    '''
 
     bot.run(TOKEN)

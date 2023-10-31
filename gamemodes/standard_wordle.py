@@ -66,8 +66,19 @@ class StandardWordle:
             contains special characters.
 
         Returns:
-            list[Letter]: Returns the guess in color-code. Returns None if the player has already won,
-            or if they ran out of attempts.
+            (error_code, ["-", "-", "-", "-", "-"]), where:
+            error_code 0 = guess is correct
+            error_code 1 = guess is valid but incorrect
+            error_code 2 = guess is invalid (too long)
+            error_code 3 = guess is invalid (too short)
+            error_code 4 = guess is invalid (contains invalid characters)
+            error_code 5 = guess is invalid (not a real word)
+            error_code 6 = guess is invalid (guess has been guessed already)
+            -------------
+            ["-", "-", "-", "-", "-"], where:
+            a "-" indicates the letter is not present in the hidden_word
+            a lowercase letter indicates that letter is present in the hidden_word but in the wrong place
+            an uppercase letter indicates that letter is present in the hidden_word and in the right place
         """
         
         if self.remaining_attempts == 0 or self.has_guessed_word:
@@ -88,7 +99,7 @@ class StandardWordle:
 
 class StandardWordleResponseSender:
     """
-    Class used to represent a game status Discord embed.
+    Class used to represent a game status Discord embed sender.
     """
     def __init__(self, ctx, gamemode):
         self.ctx = ctx
@@ -167,7 +178,7 @@ class StandardWordleResponseSender:
         await self.ctx.send(embed=embed, reference=guess_obj)
 
 # starts Standard Wordle game instance
-async def run(ctx, interaction, users):
+async def run(ctx, interaction, current_users):
     
     # check if the guess appears in the same channel as the game
     # check if the guess is sent by the user who started the game
@@ -201,10 +212,10 @@ async def run(ctx, interaction, users):
         guess = await ctx.bot.wait_for("message", check=check_guess)
         # ignore empty guesses and guesses that start with "!", unless it's the quit command ("!q")
         while guess.content == "" or guess.content[0] == "!":
-            if guess.content == "!q":
+            if guess.content == "!q" or guess.content == "!quit":
                 print(f"[INFO] {ctx.author} quit their Wordle game (mode=Standard Wordle, hidden_word={game.get_hidden_word()})")
                 await sender.send_cancel_embed(guess)
-                users.remove(ctx.author)
+                current_users.remove(ctx.author)
                 return
             guess = await ctx.bot.wait_for("message", check=check_guess)
 
@@ -215,7 +226,7 @@ async def run(ctx, interaction, users):
         if wordle_result[0] == 0:
             print(f"[INFO] {ctx.author} won their Wordle game (mode=Standard Wordle, hidden_word={game.get_hidden_word()})")
             await sender.send_win_embed(game.get_history(), guess, game.get_guesses_rem())
-            users.remove(ctx.author) #remove user from bot's active users list
+            current_users.remove(ctx.author) #remove user from bot's active users list
             return
         # guess is incorrect
         else:
@@ -227,5 +238,5 @@ async def run(ctx, interaction, users):
     
     print(f"[INFO] {ctx.author} lost their Wordle game (mode=Standard Wordle, hidden_word={game.get_hidden_word()})")
     await sender.send_lose_embed(game.get_history(), guess, game.get_hidden_word())
-    users.remove(ctx.author) #remove user from bot's active users list
+    current_users.remove(ctx.author) #remove user from bot's active users list
     return

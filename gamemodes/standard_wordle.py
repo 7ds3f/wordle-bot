@@ -2,9 +2,12 @@
 Standard Wordle gamemode, interactable through Discord.
 '''
 
+import sys
 import enchant
 import discord
+sys.path.append("gamemodes/game_util")
 import wordle
+import letter
 
 class StandardWordle:
     """
@@ -13,39 +16,55 @@ class StandardWordle:
 
     def __init__(self, daily):
         """
-        Constructs a Standard Wordle game.
+        DESC: Constructs a Standard Wordle game.
 
-        Args:
-            daily (bool): Whether or not to use a randomly generated word.
+        PARAMS:
+            daily (boolean) - whether or not to use a randomly generated word
         """
+
+        self.letters = dict()
+        "The states of all letters used in the current game"
+        
+        # build a dictionary for the alphabet for the current game
+        for i in range(97, 123):
+            self.letters.update({chr(i) : letter.Letter(chr(i), letter.LetterState.NONE)})
+
         self.daily = daily
-        'If True, use daily Wordle Word. If False, generate a random word'
+        "If True, use daily Wordle Word. If False, generate a random word"
         self.remaining_attempts = 6
-        'The number of attempts the player has left to guess the hidden word.'
+        "The number of attempts the player has left to guess the hidden word."
         self.has_guessed_word = False
-        'Whether the player has guessed the hidden word.'
-        self.letters_used = list()
-        'All the letters the player has used for each guess.'
+        "Whether the player has guessed the hidden word."
         self.history = dict()
-        'The player\'s history of guessed words.'
+        "The player\'s history of guessed words for the current game"
         self.dictionary = enchant.Dict("en_US")
-        'The dictionary of valid words for the current game'
+        "The dictionary of valid words for the current game"
+
+        # select a random word only if Daily is False
         if daily:
             self.hidden_word = wordle.daily_word()
         else:
             self.hidden_word = wordle.random_word(self.dictionary)
-        'The word the player is trying to guess.'
+        "The word the player is trying to guess."
 
     def is_terminated(self) -> bool:
         """
-        Whether the game has been terminated.
+        DESC: Whether the game has been terminated.
         
-        Returns:
-            bool: Returns 'true' if the game has been terminated; otherwise 'false'.
+        RETURNS: (bool) True if the game has been terminated; otherwise False
         """
         return self.has_guessed_word or self.remaining_attempts == 0
     
-    def get_history(self):
+    def get_letters(self) -> dict:
+        """
+        DESC: Returns a dictionary of all the user's guesses and corresponding results for the current game
+        
+        RETURNS: (dict) all of the user's previous guesses for the current game
+        """
+
+        return self.letters
+
+    def get_history(self) -> dict:
         return self.history
     
     def get_guesses_rem(self):
@@ -84,7 +103,7 @@ class StandardWordle:
         if self.remaining_attempts == 0 or self.has_guessed_word:
             return None
         
-        wordle_result = wordle.wordle(guess, self.hidden_word, self.history, self.dictionary)
+        wordle_result = wordle.wordle(guess, self.hidden_word, self.history, self.dictionary, self.letters)
 
         if wordle_result[0] == 0: # guess is valid and correct
             self.has_guessed_word = True
@@ -115,14 +134,37 @@ class StandardWordleResponseSender:
         await self.ctx.send(embed=embed)
 
     # send embed for ongoing game status
-    async def send_game_embed(self, guessed_words, guess_obj, guesses_rem):
+    async def send_game_embed(self, guessed_words, guess_obj, guesses_rem, used_letters):
         embed=discord.Embed(
             title=self.gamemode,
             color=discord.Color.blurple(),
             description="Incorrect. Type another guess!"
         )
+        # guessed words
         for guess in guessed_words.keys():
             embed.add_field(name="", value=guessed_words[guess][1], inline=False)
+        # letters used
+        embed.add_field(name="Letters Used", value="", inline=False)
+        # used letters
+        letters_row1 = ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"]
+        letters_row2 = ["a", "s", "d", "f", "g", "h", "j", "k", "l"]
+        letters_row3 = ["z", "x", "c", "v", "b", "n", "m"]
+
+        letters_str1 = ""
+        letters_str2 = ""
+        letters_str3 = ""
+
+        for letter in letters_row1:
+            letters_str1 += used_letters[letter].get_state()
+        for letter in letters_row2:
+            letters_str2 += used_letters[letter].get_state()
+        for letter in letters_row3:
+            letters_str3 += used_letters[letter].get_state()
+
+        embed.add_field(name="", value=letters_str1, inline=False)
+        embed.add_field(name="", value=letters_str2, inline=False)
+        embed.add_field(name="", value=letters_str3, inline=False)
+        # guess counter
         embed.add_field(name="Guess #", value=str(6 - guesses_rem) + "/6", inline=False)
         await self.ctx.send(embed=embed, reference=guess_obj)
 
@@ -232,7 +274,7 @@ async def run(ctx, interaction, current_users):
         else:
             if wordle_result[0] == 1:
                 if not game.is_terminated():
-                    await sender.send_game_embed(game.get_history(), guess, game.get_guesses_rem())
+                    await sender.send_game_embed(game.get_history(), guess, game.get_guesses_rem(), game.get_letters())
             else:
                 await sender.send_invalid_embed(wordle_result, guess)
     

@@ -58,7 +58,7 @@ async def run(ctx, interaction, users):
         else:
             if wordle_result[0] == 1:
                 if not game.is_terminated():
-                    await sender.send_game_embed(game.get_history(), guess, game.get_guesses_rem())
+                    await sender.send_game_embed(game.get_history(), guess, game.get_guesses_rem(), game.get_letters())
             else:
                 await sender.send_invalid_embed(wordle_result, guess)
 

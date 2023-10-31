@@ -38,7 +38,7 @@ async def run(ctx, interaction, users):
         guess = await ctx.bot.wait_for("message", check=check_guess)
         # ignore empty guesses and guesses that start with "!", unless it's the quit command ("!q")
         while guess.content == "" or guess.content[0] == "!":
-            if guess.content == "!q":
+            if guess.content == "!q" or guess.content == "!quit":
                 print(f"[INFO] {ctx.author} quit their Wordle game (mode=Daily Wordle, hidden_word={game.get_hidden_word()})")
                 await sender.send_cancel_embed(guess)
                 users.remove(ctx.author)

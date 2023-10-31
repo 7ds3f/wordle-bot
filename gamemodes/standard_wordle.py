@@ -212,7 +212,7 @@ class StandardWordleResponseSender:
         elif wordle_result[0] == 3:
             embed.add_field(name="Reason", value="Guess is TOO SHORT")
         elif wordle_result[0] == 4:
-            embed.add_field(name="Reason", value="Guess is contains INVALID CHARACTERS")
+            embed.add_field(name="Reason", value="Guess contains INVALID CHARACTERS")
         elif wordle_result[0] == 5:
             embed.add_field(name="Reason", value="Guess is NOT A REAL WORD")
         elif wordle_result[0] == 6:

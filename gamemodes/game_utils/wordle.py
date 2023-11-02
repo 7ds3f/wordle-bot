@@ -29,26 +29,22 @@ def wordle_helper(guess:str, hidden_word:str, game_letters:dict) -> tuple:
     will reflect its validity relative to the hidden word. 
     """
 
-    result = list()
     guess = guess.lower()
     hidden_word = hidden_word.lower()
 
+    result = []
+    for char in guess:
+        result.append(letter.Letter(char, letter.LetterState.GRAY))
+        game_letters[char].set_state(letter.LetterState.GRAY, False)
+
     # guess is correct
     if guess == hidden_word:
-        for char in guess:
-            result.append(letter.Letter(char, letter.LetterState.GREEN))
-            game_letters[char].set_state(letter.LetterState.GREEN, False)
+        for char_idx in range(len(guess)):
+            result[char_idx].set_state(letter.LetterState.GREEN, True)
+            game_letters[guess[char_idx]].set_state(letter.LetterState.GREEN, True)
         return (True, result)
     # guess is NOT correct
     else:
-
-        """
-        ////// Obsolete algorithm //////
-         result = []
-        for char in guess:
-            result.append(letter.Letter(char, letter.LetterState.GRAY))
-            game_letters[char].set_state(letter.LetterState.GRAY, False)
-    
         #initialize and load dictionaries for guess and hidden_word
         guess_dict = dict()
         hidden_word_dict = dict()
@@ -82,8 +78,8 @@ def wordle_helper(guess:str, hidden_word:str, game_letters:dict) -> tuple:
                     game_letters[char].set_state(letter.LetterState.YELLOW, False)
                     i += 1
                     j += 1
-        """
 
+        """
         # Edmond's superior algorithm
         remaining = list(hidden_word)
         
@@ -99,6 +95,7 @@ def wordle_helper(guess:str, hidden_word:str, game_letters:dict) -> tuple:
             else:
                 result.append(letter.Letter(guess_char, letter.LetterState.GRAY))
                 game_letters[guess_char].set_state(letter.LetterState.GRAY, False)
+        """
 
         return (False, result)
 
@@ -209,7 +206,7 @@ def daily_word() -> str:
     # select a random number from 0 to 5756 (number of 5 letter words in the dictionary)
     random_num = random.randint(0, 5756)
     # select the word from sgb-words.txt at the random number
-    word = linecache.getline("sgb-words.txt", random_num)
+    word = linecache.getline("game_utils/sgb-words.txt", random_num)
     # remove the newline character from the word
     word = word[:-1]
     return word.upper()
@@ -235,19 +232,23 @@ def main():
     """
 
     d = enchant.Dict("en_US")
-    hidden_word = random_word(d)
+    hidden_word = "atoms"
     print("Hidden Word:", hidden_word)
     guessed_words = dict()
+    game_letters = dict()
+    # build a dictionary for the alphabet for the current game
+    for i in range(97, 123):
+        game_letters.update({chr(i) : letter.Letter(chr(i), letter.LetterState.NONE)})
 
     guess = input("Enter a guess (-1 to exit)...\n")
     while (guess != "-1"):
-        wordle_result = wordle(guess, hidden_word, guessed_words, d)
+        wordle_result = wordle(guess, hidden_word, guessed_words, d, game_letters)
         if wordle_result[0] == 0:
             print("wordle(): guess is valid and CORRECT", guessed_words[guess])
             print('\nThanks for playing! You got %s in %d (valid & distinct) tries.\n' % (hidden_word, len(guessed_words)))
             break
         elif wordle_result[0] == 1:
-            print("wordle(): guess is valid but INCORRECT", guessed_words[guess])
+            print("wordle(): guess is valid but INCORRECT", guessed_words[guess][0])
         elif wordle_result[0] == 2:
             print("wordle(): guess is TOO LONG")
         elif wordle_result[0] == 3:
@@ -257,7 +258,7 @@ def main():
         elif wordle_result[0] == 5:
             print("wordle(): guess is NOT A REAL WORD")
         elif wordle_result[0] == 6:
-            print("wordle(): guess has been ALREADY GUESSED", guessed_words[guess])
+            print("wordle(): guess has been ALREADY GUESSED", guessed_words[guess][0])
         else:
             print("wordle(): ERROR")
         guess = input("Enter another guess...\n")

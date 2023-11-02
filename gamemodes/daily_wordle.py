@@ -4,7 +4,7 @@ Daily Wordle gamemode, interactable through Discord.
 import standard_wordle
 
 # starts Daily Wordle game instance
-async def run(ctx, interaction, users):
+async def run(ctx, interaction, bot_users):
 
     # check if the guess appears in the same channel as the game
     # check if the guess is sent by the user who started the game
@@ -41,7 +41,8 @@ async def run(ctx, interaction, users):
             if guess.content == "!q" or guess.content == "!quit":
                 print(f"[INFO] {ctx.author} quit their Wordle game (mode=Daily Wordle, hidden_word={game.get_hidden_word()})")
                 await sender.send_cancel_embed(guess)
-                users.remove(ctx.author)
+                bot_users[ctx.author].set_in_game(False) # change user in_game state
+                bot_users[ctx.author].add_forfeit() # increment game forfeits
                 return
             guess = await ctx.bot.wait_for("message", check=check_guess)
 
@@ -52,11 +53,20 @@ async def run(ctx, interaction, users):
         if wordle_result[0] == 0:
             print(f"[INFO] {ctx.author} won their Wordle game (mode=Daily Wordle, hidden_word={game.get_hidden_word()})")
             await sender.send_win_embed(game.get_history(), guess, game.get_guesses_rem())
-            users.remove(ctx.author) #remove user from bot's active users list
+            bot_users[ctx.author].set_in_game(False) # change user in_game state
+            bot_users[ctx.author].add_win() # increment game wins
+            bot_users[ctx.author].update_fastest_guess(game.get_game_time()) # set fastest guess
             return
         # guess is incorrect
         else:
             if wordle_result[0] == 1:
+                for letter_obj in wordle_result[1]:
+                    if letter_obj.get_state_id() == 1:
+                        bot_users[ctx.author].add_gray_tile()
+                    if letter_obj.get_state_id() == 2:
+                        bot_users[ctx.author].add_yellow_tile()
+                    if letter_obj.get_state_id() == 3:
+                        bot_users[ctx.author].add_green_tile()
                 if not game.is_terminated():
                     await sender.send_game_embed(game.get_history(), guess, game.get_guesses_rem(), game.get_letters())
             else:
@@ -64,5 +74,6 @@ async def run(ctx, interaction, users):
 
     print(f"[INFO] {ctx.author} lost their Wordle game (mode=Daily Wordle, hidden_word={game.get_hidden_word()})")
     await sender.send_lose_embed(game.get_history(), guess, game.get_hidden_word())
-    users.remove(ctx.author) #remove user from bot's active users list
+    bot_users[ctx.author].set_in_game(False) #change user in_game state
+    bot_users[ctx.author].add_loss() # increment game losses
     return

@@ -169,6 +169,14 @@ class Letter:
         """
         return self.letter
 
+    def get_state_id(self:int) -> int:
+        """
+        DESC: Returns the state (color) of the letter as a Discord emoji identifier
+
+        RETURNS: (str) a Discord emoji identifer representing the class's letter's state
+        """
+        return self.state_id
+
     def get_state(self:str) -> str:
         """
         DESC: Returns the state (color) of the letter as a Discord emoji identifier

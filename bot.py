@@ -4,6 +4,8 @@ import discord
 from discord.ext import commands
 from dotenv import load_dotenv
 sys.path.append("gamemodes")
+sys.path.append("player_stats")
+import user
 import standard_wordle
 import daily_wordle
 
@@ -18,14 +20,38 @@ def run_discord_bot():
     intents.message_content = True
     bot = commands.Bot(command_prefix='!', intents=intents)
 
-    # set of CURRENT bot users
-    # contains users which are actively playing any type of Wordle game
-    current_users = set()
-
-    # set of ALL bot users
+    # dictionary of ALL bot users
     # contains all users who ever interacted with the bot
-    all_users = set()
+    bot_users = dict()
     
+    # embed for user stats
+    async def send_user_stats_embed(ctx, user):
+        embed=discord.Embed(
+            title="User Statistics",
+            description=user.mention,
+            color=discord.Color.blurple()
+        )
+        embed.add_field(name="", value="Game Wins: " + str(bot_users[user].get_wins()), inline=False)
+        embed.add_field(name="", value="Game Losses: " + str(bot_users[user].get_losses()), inline=False)
+        embed.add_field(name="", value="Game Forfeits: " + str(bot_users[user].get_forfeits()), inline=False)
+        embed.add_field(name="", value="Gray Tiles: " + str(bot_users[user].get_gray_tiles()), inline=False)
+        embed.add_field(name="", value="Yellow Tiles: " + str(bot_users[user].get_yellow_tiles()), inline=False)
+        embed.add_field(name="", value="Green Tiles: " + str(bot_users[user].get_green_tiles()), inline=False)
+        if bot_users[user].get_wins() == 0:
+            embed.add_field(name="", value=f"Fastest Guess: N/A", inline=False)
+        else:
+            embed.add_field(name="", value=f"Fastest Guess: {bot_users[user].get_fastest_guess()/60:.2f} minute(s)", inline=False)
+        await ctx.send(embed=embed)
+
+    # embed for new user warning
+    async def send_new_user_embed(ctx, user):
+        embed=discord.Embed(
+            title="User Statistics",
+            description="No user data. Use \"!ng\" to start a new game, " + user.mention + ".",
+            color=discord.Color.yellow()
+        )
+        await ctx.send(embed=embed)
+
     # embed for duplicate game instance warning
     async def send_in_game_warn_embed(ctx, user):
         embed=discord.Embed(
@@ -47,30 +73,45 @@ def run_discord_bot():
         class GamemodeSelectionButtons(discord.ui.View):
             def __init__(self, *, timeout=180):
                 super().__init__(timeout=timeout)
-            
             # Standard Wordle button
             @discord.ui.button(label="Standard Wordle",style=discord.ButtonStyle.primary)
             async def standard_wordle_button(self,interaction:discord.Interaction,button:discord.ui.Button):
                 await interaction.response.edit_message(content=f"Selected Standard Wordle")
-                # check if user is already in an active Wordle game
-                if interaction.user in current_users:
-                    print(f"[WARN] {interaction.user} tried to start a duplicate Wordle game instance...")
-                    await send_in_game_warn_embed(ctx, interaction.user)
+                # add user to the bot if the user has never used it before + start the game
+                if interaction.user not in bot_users:
+                    bot_users.update({interaction.user : user.User(interaction.user)})
+                    bot_users[interaction.user].set_in_game(True)
+                    await standard_wordle.run(ctx, interaction, bot_users)
+                # check if existing user is in a game already
                 else:
-                    current_users.add(interaction.user)
-                    await standard_wordle.run(ctx, interaction, current_users)
+                    # if existing user is in a game already, send warning embed
+                    if bot_users[interaction.user].is_in_game():
+                        print(f"[WARN] {interaction.user} tried to start a duplicate Wordle game instance...")
+                        await send_in_game_warn_embed(ctx, interaction.user)
+                    # if existing user is NOT in a game already, start a new game
+                    else:
+                        bot_users[interaction.user].set_in_game(True)
+                        await standard_wordle.run(ctx, interaction, bot_users)
             
             # Daily Wordle button
             @discord.ui.button(label="Daily Wordle",style=discord.ButtonStyle.primary)
             async def daily_wordle_button(self,interaction:discord.Interaction,button:discord.ui.Button):
                 await interaction.response.edit_message(content=f"Selected Daily Wordle")
-                # check if user is already in an active Wordle game
-                if interaction.user in current_users:
-                    print(f"[WARN] {interaction.user} tried to start a duplicate Wordle game instance...")
-                    await send_in_game_warn_embed(ctx, interaction.user)
+                # add user to the bot if the user has never used it before + start the game
+                if interaction.user not in bot_users:
+                    bot_users.update({interaction.user : user.User(interaction.user)})
+                    bot_users[interaction.user].set_in_game(True)
+                    await daily_wordle.run(ctx, interaction, bot_users)
+                # check if existing user is in a game already
                 else:
-                    current_users.add(interaction.user)
-                    await daily_wordle.run(ctx, interaction, current_users)
+                    # if existing user is in a game already, send warning embed
+                    if bot_users[interaction.user].is_in_game():
+                        print(f"[WARN] {interaction.user} tried to start a duplicate Wordle game instance...")
+                        await send_in_game_warn_embed(ctx, interaction.user)
+                    # if existing user is NOT in a game already, start a new game
+                    else:
+                        bot_users[interaction.user].set_in_game(True)
+                        await daily_wordle.run(ctx, interaction, bot_users)
             
             # Feudle Wordle button
             @discord.ui.button(label="Feudle",style=discord.ButtonStyle.primary)
@@ -89,27 +130,53 @@ def run_discord_bot():
     # !sw (standard wordle) command handler
     @bot.command(name="sw", aliases=["standard", "standardwordle"], brief="Start a Standard Wordle game", description="Start a Standard Wordle game")
     async def _sw(ctx):
-        if ctx.author in current_users:
-            print(f"[WARN] {ctx.author} tried to start a duplicate Wordle game instance...")
-            await send_in_game_warn_embed(ctx, ctx.author)
-        else:   
-            current_users.add(ctx.author)
-            await standard_wordle.run(ctx, None, current_users)
+        # add user to the bot if the user has never used it before + start the game
+        if ctx.author not in bot_users:
+            bot_users.update({ctx.author : user.User(ctx.author)})
+            bot_users[ctx.author].set_in_game(True)
+            await standard_wordle.run(ctx, None, bot_users)
+        # check if existing user is in a game already
+        else:
+            # if existing user is in a game already, send warning embed
+            if bot_users[ctx.author].is_in_game():
+                print(f"[WARN] {ctx.author} tried to start a duplicate Wordle game instance...")
+                await send_in_game_warn_embed(ctx, ctx.author)
+            # if existing user is NOT in a game already, start a new game
+            else:
+                bot_users[ctx.author].set_in_game(True)
+                await standard_wordle.run(ctx, None, bot_users)
 
     # !dw (daily wordle) command handler
     @bot.command(name="dw", aliases=["daily", "dailywordle"], brief="Start a Daily Wordle game", description="Start a Daily Wordle game")
     async def _dw(ctx):
-        if ctx.author in current_users:
-            print(f"[WARN] {ctx.author} tried to start a duplicate Wordle game instance...")
-            await send_in_game_warn_embed(ctx, ctx.author)
+        # add user to the bot if the user has never used it before + start the game
+        if ctx.author not in bot_users:
+            bot_users.update({ctx.author : user.User(ctx.author)})
+            bot_users[ctx.author].set_in_game(True)
+            await daily_wordle.run(ctx, None, bot_users)
+        # check if existing user is in a game already
         else:
-            current_users.add(ctx.author)
-            await daily_wordle.run(ctx, None, current_users)
+            # if existing user is in a game already, send warning embed
+            if bot_users[ctx.author].is_in_game():
+                print(f"[WARN] {ctx.author} tried to start a duplicate Wordle game instance...")
+                await send_in_game_warn_embed(ctx, ctx.author)
+            # if existing user is NOT in a game already, start a new game
+            else:
+                bot_users[ctx.author].set_in_game(True)
+                await daily_wordle.run(ctx, None, bot_users)
     
     # !q (quit) command handler
     @bot.command(name="q", aliases=["quit"], brief="Quit your current Wordle game", description="Quit your current Wordle game")
     async def _q(ctx):
         return
+    
+    # !s (stats) command handler
+    @bot.command(name="s", aliases=["stats"], brief="Display user statistics", description="Display user statistics")
+    async def _s(ctx):
+        if ctx.author not in bot_users:
+            await send_new_user_embed(ctx, ctx.author)
+        else:
+            await send_user_stats_embed(ctx, ctx.author)
     
     # !greet command handler
     # print custom emoji example with embed

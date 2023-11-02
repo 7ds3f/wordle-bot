@@ -5,9 +5,10 @@ Standard Wordle gamemode, interactable through Discord.
 import sys
 import enchant
 import discord
-sys.path.append("gamemodes/game_util")
+sys.path.append("gamemodes/game_utils")
 import wordle
 import letter
+import time
 
 class StandardWordle:
     """
@@ -22,6 +23,10 @@ class StandardWordle:
             daily (boolean) - whether or not to use a randomly generated word
         """
 
+        self.game_start_time = time.time()
+        "The time when the game was started"
+        self.game_time = None
+        "Time elapsed between game start and end via a correct guess"
         self.letters = dict()
         "The states of all letters used in the current game"
         
@@ -63,6 +68,9 @@ class StandardWordle:
         """
 
         return self.letters
+
+    def get_game_time(self):
+        return self.game_time
 
     def get_history(self) -> dict:
         return self.history
@@ -108,6 +116,7 @@ class StandardWordle:
         if wordle_result[0] == 0: # guess is valid and correct
             self.has_guessed_word = True
             self.__use_attempt()
+            self.game_time = time.time() - self.game_start_time
         elif wordle_result[0] == 1: # guess is valid and incorrect
             self.__use_attempt()
         
@@ -220,7 +229,7 @@ class StandardWordleResponseSender:
         await self.ctx.send(embed=embed, reference=guess_obj)
 
 # starts Standard Wordle game instance
-async def run(ctx, interaction, current_users):
+async def run(ctx, interaction, bot_users):
     
     # check if the guess appears in the same channel as the game
     # check if the guess is sent by the user who started the game
@@ -257,7 +266,8 @@ async def run(ctx, interaction, current_users):
             if guess.content == "!q" or guess.content == "!quit":
                 print(f"[INFO] {ctx.author} quit their Wordle game (mode=Standard Wordle, hidden_word={game.get_hidden_word()})")
                 await sender.send_cancel_embed(guess)
-                current_users.remove(ctx.author)
+                bot_users[ctx.author].set_in_game(False) # change user in_game state
+                bot_users[ctx.author].add_forfeit() # increment game forfeits
                 return
             guess = await ctx.bot.wait_for("message", check=check_guess)
 
@@ -268,11 +278,20 @@ async def run(ctx, interaction, current_users):
         if wordle_result[0] == 0:
             print(f"[INFO] {ctx.author} won their Wordle game (mode=Standard Wordle, hidden_word={game.get_hidden_word()})")
             await sender.send_win_embed(game.get_history(), guess, game.get_guesses_rem())
-            current_users.remove(ctx.author) #remove user from bot's active users list
+            bot_users[ctx.author].set_in_game(False) # change user in_game state
+            bot_users[ctx.author].add_win() # increment game wins
+            bot_users[ctx.author].update_fastest_guess(game.get_game_time()) # set fastest guess
             return
         # guess is incorrect
         else:
             if wordle_result[0] == 1:
+                for letter_obj in wordle_result[1]:
+                    if letter_obj.get_state_id() == 1:
+                        bot_users[ctx.author].add_gray_tile()
+                    if letter_obj.get_state_id() == 2:
+                        bot_users[ctx.author].add_yellow_tile()
+                    if letter_obj.get_state_id() == 3:
+                        bot_users[ctx.author].add_green_tile()
                 if not game.is_terminated():
                     await sender.send_game_embed(game.get_history(), guess, game.get_guesses_rem(), game.get_letters())
             else:
@@ -280,5 +299,6 @@ async def run(ctx, interaction, current_users):
     
     print(f"[INFO] {ctx.author} lost their Wordle game (mode=Standard Wordle, hidden_word={game.get_hidden_word()})")
     await sender.send_lose_embed(game.get_history(), guess, game.get_hidden_word())
-    current_users.remove(ctx.author) #remove user from bot's active users list
+    bot_users[ctx.author].set_in_game(False) #change user in_game state
+    bot_users[ctx.author].add_loss() # increment game losses
     return

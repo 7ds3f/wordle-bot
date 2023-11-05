@@ -1,18 +1,14 @@
 import random
 import requests
-import os
 
 from wordle import *
 from wordle.exceptions import InvalidGuess
 from wordle.letter import blank_square
-from dotenv import load_dotenv
-
-load_dotenv()
 
 WORD_FILE_PATH = "standard_words.txt"
-"The file path to the words a feudle Wordle game will use."
+"The file path to the words a Feudle game will use."
 MAX_ATTEMPTS = 6
-"The maximum attempts a feudle Wordle game will allow."
+"The maximum attempts a Feudle game will allow."
 
 def random_word() -> str:
     """
@@ -67,15 +63,15 @@ def word_phrase(hidden_word) -> str:
 
 class Feudle(Wordle):
     """
-    A class used to represent a feudle Wordle game.
+    A class used to represent a Feudle game.
     """
 
     def __init__(self, user):
         """
-        Constructs a feudle Wordle game.
+        Constructs a Feudle game.
 
-        In a feudle Wordle game, a user only has 6 guesses
-        and the hidden word is 5-letters long. The player will also
+        In a Feudle game, a user only has 6 guesses and the
+        hidden word is 5-letters long. The player will also
         be provided with a censored phrase that demonstrates
         the usage of the hidden word.
         """

@@ -1,6 +1,6 @@
 import random
+import requests
 import os
-import openai
 
 from wordle import *
 from wordle.exceptions import InvalidGuess
@@ -13,10 +13,6 @@ WORD_FILE_PATH = "standard_words.txt"
 "The file path to the words a feudle Wordle game will use."
 MAX_ATTEMPTS = 6
 "The maximum attempts a feudle Wordle game will allow."
-TOKEN = os.getenv("CHATGPT_TOKEN")
-"The token of the ChatGPT API"
-
-openai.api_key = TOKEN
 
 def random_word() -> str:
     """
@@ -29,6 +25,7 @@ def random_word() -> str:
         words = file.readlines()
         return random.choice(words).strip()
 
+#TODO: this is SLOWWWW
 def word_phrase(hidden_word) -> str:
     """
     Generates a censored usage phrase for hidden_word
@@ -36,15 +33,37 @@ def word_phrase(hidden_word) -> str:
     Returns:
         str: a usage phrase for hidden_word
     """
-    phrase = openai.ChatCompletion.create(
-      model="gpt-3.5-turbo",
-      messages=[
-        {"role": "system", "content": "Given a single word, you need to create a short sentence using this word which examplifies the meaning of the word. Then replace this word in the sentence with a blank (_____)."},
-        {"role": "user", "content": hidden_word}
-      ]
-    )
 
-    return phrase
+    # if word is in dictionary
+    try:
+        # fetch word data from api
+        url = f"https://api.dictionaryapi.dev/api/v2/entries/en/{hidden_word}"
+        word_data = requests.get(url).json()
+
+        # get all word phrases (if any) for all meanings
+        phrases = []
+        for meaning_idx in range(0, len(word_data[0]["meanings"])):
+            for definition in word_data[0]["meanings"][meaning_idx]["definitions"]:
+                if "example" in definition and hidden_word in definition["example"].split():
+                    phrases.append(definition["example"])
+        
+        # if no phrases for the word were found
+        if not phrases:
+            return "-1"
+        else:
+            # pick a random phrase + split it
+            phrase_list = phrases[random.randint(0, len(phrases)-1)].split()
+            phrase_list[0] = phrase_list[0].capitalize()
+            
+            # remove all occurences of the hidden word from the phrase
+            word_count = phrase_list.count(hidden_word)
+            while word_count > 0:
+                phrase_list[phrase_list.index(hidden_word)] = blank_square * len(hidden_word)
+                word_count -= 1
+            return " ".join(phrase_list)
+    # if word is not in dictionary
+    except:
+        return "-1"
 
 class Feudle(Wordle):
     """
@@ -60,11 +79,15 @@ class Feudle(Wordle):
         be provided with a censored phrase that demonstrates
         the usage of the hidden word.
         """
+        #TODO: this is SLOWWWW
+        print(f"Generating a phrase for a new feudle Wordle game...")
         self.random_word = random_word()
+        self.word_phrase = word_phrase(self.random_word)
+        while self.word_phrase == "-1":
+            self.random_word = random_word()
+            self.word_phrase = word_phrase(self.random_word)
         super().__init__(self.random_word, MAX_ATTEMPTS, user)
         self.game_status = blank_game_embed(self, "Feudle Wordle")
-        self.word_phrase = word_phrase(self.random_word)
-        print(self.word_phrase)
 
     async def run(self, ctx, channel):
         """
@@ -82,6 +105,8 @@ class Feudle(Wordle):
                 color_codes = self.make_guess(guess)
                 update_game_embed(self.game_status, self, color_codes)
                 await ctx.send(embed=self.game_status)
+                if not self.is_terminated():
+                    await display_message(ctx, "", f"*{self.word_phrase}*")
             except InvalidGuess as e:
                 await display_warning(ctx, "Invalid Guess", e.message)
                 pass
@@ -110,11 +135,13 @@ class Feudle(Wordle):
             rules =
             f"""
             **How to play?**
-            You have {self.max_attempts} attempts to fill in the missing word in a sentence.
+            You have {self.max_attempts} attempts to fill in a sentence's missing word.
 
             **Green** indicates that the letter is in the correct spot.
             **Yellow** indicates that the letter is in the wrong spot.
             **Gray** indicates that the letter is not in the word.
+
+            *{self.word_phrase}*
 
             Type a word to start playing.
             """

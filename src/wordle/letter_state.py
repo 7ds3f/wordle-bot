@@ -5,7 +5,7 @@ class LetterState(Enum):
     An enum used to represent the state of a Wordle letter.
     """
     
-    NONE = 0
+    BLACK = 0
     'Letters that have not been used in a guess yet.'
     
     GRAY = 1

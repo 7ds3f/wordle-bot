@@ -1,9 +1,9 @@
-from wordle.exceptions import InvalidLetter
 from wordle.letter_state import LetterState
 
-no_letter = "<:blank:1170476171251687494>"
+blank_square = "<:blank:1170476171251687494>"
+"The blank square emoji."
 
-unused_letters_dict = {
+black_squares = {
     "a": "<:a_gray_dark:1168951510663696394>",
     "b": "<:b_gray_dark:1168951512488214588>",
     "c": "<:c_gray_dark:1168951513754902538>",
@@ -31,8 +31,9 @@ unused_letters_dict = {
     "y": "<:y_gray_dark:1168954452221382656>",
     "z": "<:z_gray_dark:1168954453492236288>"
 }
+"A dictionary of black square emojis."
 
-gray_letters_dict = {
+gray_squares = {
     "a": "<:a_gray:1162435739192148038>",
     "b": "<:b_gray:1162437701723750574>",
     "c": "<:c_gray:1162437702990446744>",
@@ -60,8 +61,9 @@ gray_letters_dict = {
     "y": "<:y_gray:1162438311814631492>",
     "z": "<:z_gray:1162438313370730546>"
 }
+"A dictionary of gray square emojis."
 
-yellow_letters_dict = {
+yellow_squares = {
     "a": "<:a_yellow:1162452541783691456>",
     "b": "<:b_yellow:1162452544702914580>",
     "c": "<:c_yellow:1162452547391459538>",
@@ -89,8 +91,9 @@ yellow_letters_dict = {
     "y": "<:y_yellow:1162497511307608076>",
     "z": "<:z_yellow:1162497513140527124>"
 }
+"A dictionary of yellow square emojis."
 
-green_letters_dict = {
+green_squares = {
     "a": "<:a_green:1162498445790171176>",
     "b": "<:b_green:1162498447715352586>",
     "c": "<:c_green:1162498448600334376>",
@@ -118,51 +121,77 @@ green_letters_dict = {
     "y": "<:y_green:1162498575016677510>",
     "z": "<:z_green:1162498576283357184>"
 }
+"A dictionary of green square emojis."
 
 class Letter:
-    'A class used to represent a Wordle letter.'
+    """
+    A class used to represent a Wordle letter.
+    """
 
-    def __init__(self, letter:str, state:LetterState = LetterState.NONE):
+    def __init__(self, letter:str, state:LetterState = LetterState.BLACK):
         """
         Constructs a Wordle letter.
         
         Args:
             letter (str): The letter represented by a string
-            state (LetterState, optional): The state of the letter (e.g. gray, yellow, green). Defaults to LetterState.NONE.
-        
-        Raises:
-            InvalidLetter: Letter is an invalid Wordle letter.
+            state (LetterState, optional): The state of the letter (e.g. black, gray, yellow, green). Defaults to LetterState.BLACK.
         """
-        
-        if not letter.isalpha():
-            raise InvalidLetter(letter, "Letter is an invalid Wordle letter.")
-        
+
         self.letter = letter
         'The letter represented by a string.'
         self.state = state
-        'The state of the letter (e.g. gray, yellow, green).'
+        'The state of the letter (e.g. black, gray, yellow, green).'
     
     def emoji(self) -> str:
+        """
+        Converts a letter into an emoji usable by Discord.
+
+        Returns:
+            str: A string representation of the letter emoji.
+        """
         match self.state:
-            case LetterState.NONE:
-                return unused_letters_dict[self.letter]
+            case LetterState.BLACK:
+                return black_squares[self.letter]
             case LetterState.GRAY:
-                return gray_letters_dict[self.letter]
+                return gray_squares[self.letter]
             case LetterState.YELLOW:
-                return yellow_letters_dict[self.letter]
+                return yellow_squares[self.letter]
             case LetterState.GREEN:
-                return green_letters_dict[self.letter]
+                return green_squares[self.letter]
 
     def __eq__(self, other):
+        """
+        The equality method for letters.
+
+        Returns:
+            bool: True if the letters and states are the same; otherwise false.
+        """
         return isinstance(other, Letter) and self.letter == other.letter and self.state == other.state
     
     def __hash__(self) -> int:
+        """
+        The hash code method for letters.
+
+        Returns:
+            int: A hash code.
+        """
         hash = 13
         hash = (hash * 7) + self.letter.__hash__
         hash = (hash * 7) + self.state.__hash__
         return hash
     
     def __str__(self) -> str:
+        """
+        A string representation of a letter.
+        
+        * An uppercase letter represents the green state.
+        * A lowercase letter represents the yellow state.
+        * A '-' represents the gray state.
+        * A '?' represents the black state.
+
+        Returns:
+            str: Returns a string representation of a letter.
+        """
         if self.state == LetterState.GREEN:
             return self.letter.upper()
         

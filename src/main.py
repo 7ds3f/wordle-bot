@@ -9,8 +9,11 @@ from users import User
 load_dotenv()
 
 COMMAND_PREFIX = "!"
+'The command prefix the bot will use.'
 TOKEN = os.getenv("DISCORD_TOKEN")
+'The token of the discord bot.'
 USERS = dict()
+'All the users who has interacted with the bot.'
 
 intents = discord.Intents.default()
 intents.message_content = True

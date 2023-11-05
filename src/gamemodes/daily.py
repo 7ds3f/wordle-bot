@@ -1,39 +1,42 @@
 import random
+import time
 
 from wordle import *
 from wordle.exceptions import InvalidGuess
 from wordle.letter import blank_square
 
 WORD_FILE_PATH = "standard_words.txt"
-"The file path to the words a standard Wordle game will use."
+"The file path to the words a daily Wordle game will use."
 MAX_ATTEMPTS = 6
-"The maximum attempts a standard Wordle game will allow."
+"The maximum attempts a daily Wordle game will allow."
 
-def random_word() -> str:
+def daily_word() -> str:
     """
-    Generates a random word from the text file indicated by WORD_FILE_PATH.
+    Picks a new word from the text file indicated by WORD_FILE_PATH per day.
 
     Returns:
-        str: A random word from the standard word pool.
+        str: A word from the daily word pool.
     """
+    seed = time.strftime("%d/%m/%Y")
+    random.seed(seed)
     with open(WORD_FILE_PATH, 'r', encoding='utf-8') as file:
         words = file.readlines()
         return random.choice(words).strip()
 
-class Standard(Wordle):
+class Daily(Wordle):
     """
-    A class used to represent a standard Wordle game.
+    A class used to represent a daily Wordle game.
     """
 
     def __init__(self, user):
         """
-        Constructs a standard Wordle game.
+        Constructs a daily Wordle game.
 
-        In a standard Wordle game, a user only has 6 guesses
+        In a daily Wordle game, a user only has 6 guesses
         and the hidden word is 5-letters long.
         """
-        super().__init__(random_word(), MAX_ATTEMPTS, user)
-        self.game_status = blank_game_embed(self, "Standard Wordle")
+        super().__init__(daily_word(), MAX_ATTEMPTS, user)
+        self.game_status = blank_game_embed(self, "Daily Wordle")
 
     async def run(self, ctx, channel):
         """
@@ -43,7 +46,7 @@ class Standard(Wordle):
             ctx: The context.
             channel: The channel messages will be sent to.
         """
-        print(f"{self.user.user.name} started a Wordle game (mode:Standard, hidden_word={self.hidden_word})")
+        print(f"{self.user.user.name} started a Wordle game (mode:Daily, hidden_word={self.hidden_word})")
         await self.__display_rules(ctx)
         while not self.is_terminated():
             guess = await self.__get_guess(ctx, ctx)
@@ -75,7 +78,7 @@ class Standard(Wordle):
         await display_rules(
             channel = channel,
             game = self,
-            gamemode = "Standard Wordle",
+            gamemode = "Daily Wordle",
             rules =
             f"""
             **How to play?**

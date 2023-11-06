@@ -10,7 +10,7 @@ class Wordle:
     """
     A class used to represent a Wordle game.
     """
-    
+
     def __init__(self, hidden_word:str, max_attempts:int, user:User):
         """
         Constructs a Wordle game.
@@ -20,7 +20,7 @@ class Wordle:
             max_attempts (int): The number of attempts the user has to guess the hidden word.
             user (User): The user playing this game.
         """
-        
+
         self.hidden_word = hidden_word.strip().lower()
         'The word the user is trying to guess.'
         self.user = user
@@ -43,7 +43,7 @@ class Wordle:
         self.user.in_game = True
         for i in range(97, 123):
             self.letters_used[chr(i)] = Letter(chr(i))
-    
+
     def elapsed_time(self) -> float:
         """
         Gets the total time the game ran if the game has terminated. Otherwise,
@@ -64,16 +64,16 @@ class Wordle:
     def is_terminated(self) -> bool:
         """
         Whether the game has been terminated.
-        
+
         Returns:
             bool: Returns 'true' if the game has been terminated; otherwise 'false'.
         """
         return self.has_guessed_word or self.attempt_number == self.max_attempts
-        
+
     def terminate(self) -> None:
         """
         Terminates the game, preventing the user from playing.
-        """   
+        """
         self.user.in_game = False
         self.end_time = time.time()
 
@@ -100,23 +100,23 @@ class Wordle:
         """
         if self.is_terminated():
             return None
-        
+
         guess = guess.strip().lower()
-        
+
         if len(guess) > len(self.hidden_word):
             raise InvalidGuess(guess, "Guess is too long.")
-        
+
         if len(guess) < len(self.hidden_word):
             raise InvalidGuess(guess, "Guess is too short.")
-        
+
         if not guess.isalpha():
             raise InvalidGuess(guess, "Guess contains special characters.")
-        
-        if not enchant.Dict("en_US").check(guess) and guess != self.hidden_word:
-            raise InvalidGuess(guess, "Guess is not a word in the English dictionary.")
-        
+
+        # if not enchant.Dict("en_US").check(guess) and guess != self.hidden_word:
+        #     raise InvalidGuess(guess, "Guess is not a word in the English dictionary.")
+
         return self.__make_guess(guess)
-    
+
     def __make_guess(self, guess:str) -> list[Letter]:
         color_codes = self.__color_code_guess(guess)
         self.history.append(color_codes)
@@ -124,7 +124,7 @@ class Wordle:
         self.__update_user_stats(color_codes)
         self.__use_attempt()
         return color_codes
-    
+
     def __color_code_guess(self, guess:str) -> list[Letter]:
         if guess == self.hidden_word:
             self.user.wins += 1
@@ -138,7 +138,7 @@ class Wordle:
         remaining = list(self.hidden_word)
         possible_yellows = list()
         index = 0
-        
+
         for hidden_char, guess_char in zip(self.hidden_word, guess):
             if hidden_char == guess_char:
                 color_codes[index].state = LetterState.GREEN
@@ -146,14 +146,14 @@ class Wordle:
             elif guess_char in remaining:
                 possible_yellows.append((guess_char, index))
             index += 1
-        
+
         for char, idx in possible_yellows:
             if char in remaining:
                 color_codes[idx].state = LetterState.YELLOW
                 remaining.remove(char)
-        
+
         return color_codes
-    
+
     def __update_letters_used(self, letters:list[Letter]):
         for char in letters:
             letter = self.letters_used[char.letter]
@@ -169,7 +169,7 @@ class Wordle:
                     self.user.yellows_generated += 1
                 case LetterState.GREEN:
                     self.user.greens_generated += 1
-        
+
     def __use_attempt(self):
         self.attempt_number += 1
         if self.attempt_number == self.max_attempts:
@@ -198,7 +198,7 @@ def blank_game_embed(game:Wordle, gamemode:str) -> discord.Embed:
     )
     for _ in range(game.max_attempts):
         embed.add_field(name="", value=empty_word, inline=False)
-    
+
     qwerty_keyboard = [
         ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
         ["a", "s", "d", "f", "g", "h", "j", "k", "l"],

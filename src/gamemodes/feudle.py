@@ -5,7 +5,7 @@ from wordle import *
 from wordle.exceptions import InvalidGuess
 from wordle.letter import blank_square
 
-WORD_FILE_PATH = "standard_words.txt"
+WORD_FILE_PATH = "feudle_words.txt"
 "The file path to the words a Feudle game will use."
 MAX_ATTEMPTS = 6
 "The maximum attempts a Feudle game will allow."
@@ -42,7 +42,7 @@ def word_phrase(hidden_word) -> str:
             for definition in word_data[0]["meanings"][meaning_idx]["definitions"]:
                 if "example" in definition and hidden_word in definition["example"].split():
                     phrases.append(definition["example"])
-        
+
         # if no phrases for the word were found
         if not phrases:
             return "-1"
@@ -50,7 +50,7 @@ def word_phrase(hidden_word) -> str:
             # pick a random phrase + split it
             phrase_list = phrases[random.randint(0, len(phrases)-1)].split()
             phrase_list[0] = phrase_list[0].capitalize()
-            
+
             # remove all occurences of the hidden word from the phrase
             word_count = phrase_list.count(hidden_word)
             while word_count > 0:

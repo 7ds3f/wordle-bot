@@ -32,7 +32,7 @@ async def on_ready():
 
 @bot.tree.command(name="daily", description="Starts the daily Wordle challenge")
 async def daily(interaction:discord.Interaction):
-    await __update_users(interaction)
+    await __update_users(interaction.user)
     if not (await __in_game(interaction)):
         channel = await __create_private_thread(interaction)
         daily = Daily(USERS[interaction.user.name], channel)
@@ -42,7 +42,7 @@ async def daily(interaction:discord.Interaction):
 
 @bot.tree.command(name="feudle", description="Starts a Feudle game")
 async def feudle(interaction:discord.Interaction):
-    await __update_users(interaction)
+    await __update_users(interaction.user)
     if not (await __in_game(interaction)):
         channel = await __create_private_thread(interaction)
         if not interaction.response.is_done():
@@ -52,7 +52,7 @@ async def feudle(interaction:discord.Interaction):
 
 @bot.tree.command(name="standard", description="Starts a standard Wordle game")
 async def standard(interaction:discord.Interaction):
-    await __update_users(interaction)
+    await __update_users(interaction.user)
     if not (await __in_game(interaction)):
         channel = await __create_private_thread(interaction)
         standard = Standard(USERS[interaction.user.name], channel)
@@ -62,7 +62,7 @@ async def standard(interaction:discord.Interaction):
 
 @bot.tree.command(name="quit", description="Quit the Wordle game you are playing (WARNING: Counts as a forfeit)")
 async def quit(interaction:discord.Interaction):
-    await __update_users(interaction)
+    await __update_users(interaction.user)
     if USERS[interaction.user.name].in_game:
         USERS[interaction.user.name].in_game.terminate()
         await display_error(interaction, "Forfeit", "You have left the game.")
@@ -71,16 +71,16 @@ async def quit(interaction:discord.Interaction):
 
 @bot.tree.command(name="stats", description="Displays your statistics")
 async def stats(interaction:discord.Interaction, user:discord.Member = None):
-    await __update_users(interaction)
+    await __update_users(interaction.user)
     if not user:
         user = interaction.user
     elif user.name not in USERS:
-        USERS.update({user.name : User(user)})
+        await __update_users(user)
     await display_statistics(interaction, USERS[user.name])
 
-async def __update_users(interaction:discord.Interaction) -> None:
-    if interaction.user.name not in USERS:
-        USERS.update({interaction.user.name : User(interaction.user)})
+async def __update_users(user:discord.Member) -> None:
+    if user.name not in USERS:
+        USERS.update({user.name : User(user)})
 
 async def __in_game(interaction:discord.Interaction) -> bool:
     if USERS[interaction.user.name].in_game:

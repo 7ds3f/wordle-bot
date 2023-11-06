@@ -21,6 +21,7 @@ USERS = dict()
 
 intents = discord.Intents.default()
 intents.message_content = True
+intents.commands = True
 bot = commands.Bot(command_prefix=COMMAND_PREFIX, intents=intents)
 
 @bot.event
@@ -60,10 +61,11 @@ async def feudle(ctx):
 
 @bot.command(name="stats", aliases=["s"], brief="Display a user's statistics", description="Display a user's statistics")
 async def stats(ctx, *args):
-    if not args and ctx.author.name in USERS:
-        await display_statistics(ctx, USERS[ctx.author.name])
-    elif args[0] in USERS:
-        await display_statistics(ctx, USERS[args[0]])
+    user = ctx.author.name if not args else args[0]
+    if ctx.author.name not in USERS:
+        USERS.update({ctx.author.name : User(ctx.author)})
+    if user in USERS:
+        await display_statistics(ctx, USERS[user])
 
 async def __in_game(ctx) -> bool:
     if USERS[ctx.author.name].in_game:

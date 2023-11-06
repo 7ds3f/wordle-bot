@@ -10,6 +10,10 @@ async def display_statistics(ctx, user:User):
         title="User Statistics",
         color=discord.Color.greyple()
     )
+    embed.set_author(
+        name = user.user.display_name,
+        icon_url = user.user.avatar.url
+    )
 
     embed.add_field(name="", value="Game Wins: " + str(user.wins), inline=False)
     embed.add_field(name="", value="Game Losses: " + str(user.losses), inline=False)
@@ -22,8 +26,4 @@ async def display_statistics(ctx, user:User):
     else:
         embed.add_field(name="", value=f"Fastest Guess: {user.standard_fastest_guess/60:.2f} minute(s)", inline=False)
 
-    embed.set_author(
-        name = user.user.display_name,
-        icon_url = user.user.avatar.url
-    )
     await ctx.send(embed=embed)

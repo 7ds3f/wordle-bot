@@ -39,7 +39,7 @@ class Wordle:
         "The user's history of guessed words."
         self.start_time = time.time()
         "The time when the game started."
-        self.end_time = float(-1)
+        self.end_time = None
         "The time when the game terminated."
 
         self.user.in_game = True
@@ -55,7 +55,7 @@ class Wordle:
             float: The total time the game has ran, or the time the game has
             elapsed since it started.
         """
-        return self.end_time - self.start_time if self.end_time != -1 else time.time() - self.start_time
+        return self.end_time - self.start_time if self.end_time else time.time() - self.start_time
 
     def remaining_attempts(self) -> int:
         """
@@ -83,7 +83,10 @@ class Wordle:
             self.user.forfeits += 1
             self.attempt_number = self.max_attempts
         elif self.has_guessed_word:
-            self.user.standard_fastest_guess = min(self.elapsed_time(), self.user.standard_fastest_guess)
+            self.user.standard_fastest_guess = min(
+                self.elapsed_time(),
+                self.user.standard_fastest_guess
+            ) if self.user.standard_fastest_guess != -1 else self.elapsed_time()
 
     def make_guess(self, guess:str) -> list[Letter]:
         """

@@ -202,7 +202,7 @@ def blank_game_embed(game:Wordle, gamemode:str) -> discord.Embed:
         icon_url = game.user.user.avatar.url
     )
     for _ in range(game.max_attempts):
-        embed.add_field(name="", value=empty_word, inline=False)
+        embed.add_field(name="", value="‍\u2003\u2003\u2003" + empty_word, inline=False)
 
     qwerty_keyboard = [
         ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
@@ -229,7 +229,7 @@ def update_game_embed(embed:discord.Embed, game:Wordle, word:list[Letter]) -> No
     embed.set_field_at(
         index = game.attempt_number - 1,
         name = "",
-        value = color_codes,
+        value = "‍\u2003\u2003\u2003" + color_codes,
         inline = False
     )
     if game.has_guessed_word:
@@ -247,7 +247,7 @@ def update_game_embed(embed:discord.Embed, game:Wordle, word:list[Letter]) -> No
             embed.set_field_at(
                 index = game.max_attempts + i,
                 name = "",
-                value = keyboard_ui[i],
+                value = ("‍\t" * i * 3) + keyboard_ui[i],
                 inline = False
             )
 

@@ -17,10 +17,10 @@ def daily_word() -> str:
         str: A word from the daily word pool.
     """
     seed = time.strftime("%d/%m/%Y")
-    random.seed(seed)
+    rand = random.Random(seed)
     with open(WORD_FILE_PATH, 'r', encoding='utf-8') as file:
         words = file.readlines()
-        return random.choice(words).strip()
+        return rand.choice(words).strip()
 
 class Daily(Wordle):
     """

@@ -70,13 +70,13 @@ async def quit(interaction:discord.Interaction):
         await display_error(interaction, "You are currently not in a game.", "Type '/standard' to start one.")
 
 @bot.tree.command(name="stats", description="Displays your statistics")
-async def stats(interaction:discord.Interaction, name:str = None):
+async def stats(interaction:discord.Interaction, user:discord.Member = None):
     await __update_users(interaction)
-    user = name if name else interaction.user.name
-    member = discord.utils.get(interaction.guild.members, name=name)
-    print(interaction.guild.get_member_named(name))
-    if user in USERS:
-        await display_statistics(interaction, USERS[user])
+    if not user:
+        user = interaction.user
+    elif user.name not in USERS:
+        USERS.update({user.name : User(user)})
+    await display_statistics(interaction, USERS[user.name])
 
 async def __update_users(interaction:discord.Interaction) -> None:
     if interaction.user.name not in USERS:

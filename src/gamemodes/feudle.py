@@ -21,7 +21,6 @@ def random_word() -> str:
         words = file.readlines()
         return random.choice(words).strip()
 
-#TODO: this is SLOWWWW
 def word_phrase(hidden_word) -> str:
     """
     Generates a censored usage phrase for hidden_word
@@ -34,32 +33,25 @@ def word_phrase(hidden_word) -> str:
     try:
         # fetch word data from api
         url = f"https://api.dictionaryapi.dev/api/v2/entries/en/{hidden_word}"
-        word_data = requests.get(url).json()
+        meanings = requests.get(url).json()[0]["meanings"]
 
         # get all word phrases (if any) for all meanings
         phrases = []
-        for meaning_idx in range(0, len(word_data[0]["meanings"])):
-            for definition in word_data[0]["meanings"][meaning_idx]["definitions"]:
-                if "example" in definition and hidden_word in definition["example"].split():
-                    phrases.append(definition["example"])
-
-        # if no phrases for the word were found
-        if not phrases:
-            return "-1"
-        else:
-            # pick a random phrase + split it
-            phrase_list = phrases[random.randint(0, len(phrases)-1)].split()
-            phrase_list[0] = phrase_list[0].capitalize()
-
-            # remove all occurences of the hidden word from the phrase
-            word_count = phrase_list.count(hidden_word)
-            while word_count > 0:
-                phrase_list[phrase_list.index(hidden_word)] = blank_square * len(hidden_word)
-                word_count -= 1
-            return " ".join(phrase_list)
-    # if word is not in dictionary
+        for meaning in meanings:
+            for definition in meaning["definitions"]:
+                if 'example' not in definition: continue
+                
+                phrase = f' {definition["example"]}'
+                index = phrase.find(f' {hidden_word}')
+                if index == -1: continue
+                
+                phrase = phrase[1:index+1] + (blank_square * len(hidden_word)) + phrase[index + len(hidden_word) + 1:]
+                phrases.append(phrase)
+                
+        if phrases: return random.choice(phrases)
     except:
-        return "-1"
+        pass
+    return None
 
 class Feudle(Wordle):
     """
@@ -79,11 +71,10 @@ class Feudle(Wordle):
             user (User): The user playing this game.
             channel: The channel this game is in.
         """
-        #TODO: this is SLOWWWW
         print(f"Generating a phrase for a new Feudle game...")
         self.random_word = random_word()
         self.word_phrase = word_phrase(self.random_word)
-        while self.word_phrase == "-1":
+        while not self.word_phrase:
             self.random_word = random_word()
             self.word_phrase = word_phrase(self.random_word)
         super().__init__(self.random_word, MAX_ATTEMPTS, user, channel)

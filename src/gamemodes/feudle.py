@@ -66,7 +66,7 @@ class Feudle(Wordle):
     A class used to represent a Feudle game.
     """
 
-    def __init__(self, user):
+    def __init__(self, user, channel):
         """
         Constructs a Feudle game.
 
@@ -76,16 +76,16 @@ class Feudle(Wordle):
         the usage of the hidden word.
         """
         #TODO: this is SLOWWWW
-        print(f"Generating a phrase for a new feudle Wordle game...")
+        print(f"Generating a phrase for a new Feudle game...")
         self.random_word = random_word()
         self.word_phrase = word_phrase(self.random_word)
         while self.word_phrase == "-1":
             self.random_word = random_word()
             self.word_phrase = word_phrase(self.random_word)
-        super().__init__(self.random_word, MAX_ATTEMPTS, user)
-        self.game_status = blank_game_embed(self, "Feudle Wordle")
+        super().__init__(self.random_word, MAX_ATTEMPTS, user, channel)
+        self.game_status = blank_game_embed(self, "Feudle")
 
-    async def run(self, ctx, channel):
+    async def run(self, ctx):
         """
         Runs the game.
 
@@ -94,22 +94,22 @@ class Feudle(Wordle):
             channel: The channel messages will be sent to.
         """
         print(f"{self.user.user.name} started a Wordle game (mode:Feudle, hidden_word={self.hidden_word})")
-        await self.__display_rules(ctx)
+        await self.__display_rules()
         while not self.is_terminated():
-            guess = await self.__get_guess(ctx, ctx)
+            guess = await self.__get_guess(ctx)
             try:
                 color_codes = self.make_guess(guess)
                 update_game_embed(self.game_status, self, color_codes)
-                await ctx.send(embed=self.game_status)
+                await self.channel.send(embed=self.game_status)
                 if not self.is_terminated():
-                    await display_message(ctx, "", f"*{self.word_phrase}*")
+                    await display_message(self.channel, "", f"*{self.word_phrase}*")
             except InvalidGuess as e:
-                await display_warning(ctx, "Invalid Guess", e.message)
+                await display_warning(self.channel, "Invalid Guess", e.message)
                 pass
 
-    async def __get_guess(self, ctx, channel) -> str:
+    async def __get_guess(self, ctx) -> str:
         def check_guess(message):
-            if message.channel.id == ctx.channel.id and self.user.user == message.author:
+            if message.channel.id == self.channel.id and self.user.user == message.author:
                 return message
 
         guess = await ctx.bot.wait_for("message", check=check_guess)
@@ -117,15 +117,14 @@ class Feudle(Wordle):
         while guess == '' or guess[0] == "!":
             if guess == '!q' or guess == '!quit':
                 self.terminate()
-                await display_error(channel, "Forfeited", "You have left the game.")
+                await display_error(self.channel, "Forfeited", "You have left the game.")
                 return
             guess = await ctx.bot.wait_for("message", check=check_guess)
             guess = guess.content
         return guess
 
-    async def __display_rules(self, channel):
+    async def __display_rules(self):
         await display_rules(
-            channel = channel,
             game = self,
             gamemode = "Feudle Wordle",
             rules =

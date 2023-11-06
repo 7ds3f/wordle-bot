@@ -10,8 +10,8 @@ class Wordle:
     """
     A class used to represent a Wordle game.
     """
-
-    def __init__(self, hidden_word:str, max_attempts:int, user:User):
+    
+    def __init__(self, hidden_word:str, max_attempts:int, user:User, channel):
         """
         Constructs a Wordle game.
 
@@ -25,6 +25,8 @@ class Wordle:
         'The word the user is trying to guess.'
         self.user = user
         'The user playing this game.'
+        self.channel = channel
+        'The channel this game is in'
         self.max_attempts = max_attempts
         'The number of attempts the user has to guess the hidden word.'
         self.attempt_number = 0
@@ -245,12 +247,11 @@ def update_game_embed(embed:discord.Embed, game:Wordle, word:list[Letter]) -> No
                 inline = False
             )
 
-async def display_rules(channel, game:Wordle, gamemode:str, rules:str):
+async def display_rules(game:Wordle, gamemode:str, rules:str):
     """
     Displays the rules of a Wordle game.
 
     Args:
-        channel: The channel the embed will be sent to.
         game (Wordle): The game the rules apply to.
         gamemode (str): The name of the gamemode.
         rules (str): The rules of the game.
@@ -264,7 +265,7 @@ async def display_rules(channel, game:Wordle, gamemode:str, rules:str):
         name = game.user.user.display_name,
         icon_url = game.user.user.avatar.url
     )
-    await channel.send(embed=embed)
+    await game.channel.send(embed=embed)
 
 async def display_error(channel, title:str, message:str):
     """

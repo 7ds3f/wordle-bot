@@ -10,7 +10,7 @@ class Wordle:
     """
     A class used to represent a Wordle game.
     """
-    
+
     def __init__(self, hidden_word:str, max_attempts:int, user:User, channel):
         """
         Constructs a Wordle game.
@@ -192,7 +192,7 @@ def blank_game_embed(game:Wordle, gamemode:str) -> discord.Embed:
     empty_word = blank_square * len(game.hidden_word)
     embed = discord.Embed(
         title = gamemode,
-        color = discord.Color.blurple()
+        color = discord.Color.yellow()
     )
     embed.set_author(
         name = game.user.user.display_name,
@@ -232,6 +232,7 @@ def update_game_embed(embed:discord.Embed, game:Wordle, word:list[Letter]) -> No
     if game.has_guessed_word:
         for _ in range(3):
             embed.remove_field(game.max_attempts)
+            embed.color=discord.Color.green()
     else:
         qwerty_keyboard = [
             ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],

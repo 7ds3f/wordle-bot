@@ -8,6 +8,7 @@ from gamemodes.daily import Daily
 from gamemodes.feudle import Feudle
 from users import User
 from wordle import display_error
+from statistics import display_statistics
 
 load_dotenv()
 
@@ -31,7 +32,7 @@ async def on_ready():
 async def standard(ctx):
     if ctx.author.name not in USERS:
         USERS.update({ctx.author.name : User(ctx.author)})
-        
+
     if not (await __in_game(ctx)):
         channel = await __create_private_thread(ctx)
         standard = Standard(USERS[ctx.author.name], channel)
@@ -41,7 +42,7 @@ async def standard(ctx):
 async def daily(ctx):
     if ctx.author.name not in USERS:
         USERS.update({ctx.author.name : User(ctx.author)})
-        
+
     if not (await __in_game(ctx)):
         channel = await __create_private_thread(ctx)
         daily = Daily(USERS[ctx.author.name], channel)
@@ -51,11 +52,18 @@ async def daily(ctx):
 async def feudle(ctx):
     if ctx.author.name not in USERS:
         USERS.update({ctx.author.name : User(ctx.author)})
-        
+
     if not (await __in_game(ctx)):
         channel = await __create_private_thread(ctx)
         feudle = Feudle(USERS[ctx.author.name], channel)
         await feudle.run(ctx)
+
+@bot.command(name="stats", aliases=["s"], brief="Display a user's statistics", description="Display a user's statistics")
+async def stats(ctx, *args):
+    if not args and ctx.author.name in USERS:
+        await display_statistics(ctx, USERS[ctx.author.name])
+    elif args[0] in USERS:
+        await display_statistics(ctx, USERS[args[0]])
 
 async def __in_game(ctx) -> bool:
     if USERS[ctx.author.name].in_game:
@@ -71,12 +79,12 @@ async def __create_private_thread(ctx):
             await channel.purge()
             return channel
         channel = channel.parent
-    
+
     channel = await channel.create_thread(
         name = f"{ctx.author.display_name}'s Game",
         type = discord.ChannelType.private_thread
     )
     await channel.add_user(ctx.author)
     return channel
-    
+
 bot.run(TOKEN)

@@ -1,11 +1,29 @@
+import discord
+
 from users import User
 
-class Statistics:
-    def __init__(self, user:User, channel):
-        self.user = user
-        "The user whose statistics will be reported"
-        self.channel = channel
-        "The channel where the statistics will be reported"
+async def display_statistics(ctx, user:User):
+    """
+    Displays a user's statistics.
+    """
+    embed=discord.Embed(
+        title="User Statistics",
+        color=discord.Color.greyple()
+    )
 
-    def display(self):
-        
+    embed.add_field(name="", value="Game Wins: " + str(user.wins), inline=False)
+    embed.add_field(name="", value="Game Losses: " + str(user.losses), inline=False)
+    embed.add_field(name="", value="Game Forfeits: " + str(user.forfeits), inline=False)
+    embed.add_field(name="", value="Gray Tiles: " + str(user.grays_generated), inline=False)
+    embed.add_field(name="", value="Yellow Tiles: " + str(user.yellows_generated), inline=False)
+    embed.add_field(name="", value="Green Tiles: " + str(user.greens_generated), inline=False)
+    if user.wins == 0:
+        embed.add_field(name="", value=f"Fastest Guess: N/A", inline=False)
+    else:
+        embed.add_field(name="", value=f"Fastest Guess: {user.standard_fastest_guess/60:.2f} minute(s)", inline=False)
+
+    embed.set_author(
+        name = user.user.display_name,
+        icon_url = user.user.avatar.url
+    )
+    await ctx.send(embed=embed)

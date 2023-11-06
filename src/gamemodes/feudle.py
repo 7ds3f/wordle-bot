@@ -74,9 +74,9 @@ class Feudle(Wordle):
         print(f"Generating a phrase for a new Feudle game...")
         self.random_word = random_word()
         self.word_phrase = word_phrase(self.random_word)
-        while not self.word_phrase:
-            self.random_word = random_word()
-            self.word_phrase = word_phrase(self.random_word)
+        # while not self.word_phrase:
+        #     self.random_word = random_word()
+        #     self.word_phrase = word_phrase(self.random_word)
         super().__init__(self.random_word, MAX_ATTEMPTS, user, channel)
         self.game_status = blank_game_embed(self, "Feudle")
 

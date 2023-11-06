@@ -12,17 +12,18 @@ from wordle import display_message, display_error
 
 load_dotenv()
 
-COMMAND_PREFIX = "!"
-'The command prefix the bot will use.'
 TOKEN = os.getenv("DISCORD_TOKEN")
 'The token of the discord bot.'
 USERS = dict()
 'All the users who has interacted with the bot.'
 
+def __get_prefix(bot, message) -> str:
+    return message.content + '!'
+
 intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
-bot = commands.Bot(command_prefix=COMMAND_PREFIX, intents=intents)
+bot = commands.Bot(command_prefix=__get_prefix, intents=intents)
 
 @bot.event
 async def on_ready():
@@ -66,6 +67,7 @@ async def quit(interaction:discord.Interaction):
     if USERS[interaction.user.name].in_game:
         USERS[interaction.user.name].in_game.terminate()
         await display_error(interaction, "Forfeit", "You have left the game.")
+        await (await __search_for_thread(interaction, f"{interaction.user.name}'s Game".capitalize())).delete()
     else:
         await display_error(interaction, "You are currently not in a game.", "Type '/standard' to start one.")
 
@@ -89,19 +91,30 @@ async def __in_game(interaction:discord.Interaction) -> bool:
     return False
 
 async def __create_private_thread(interaction:discord.Interaction):
-    channel = interaction.channel
-    if isinstance(channel, discord.Thread):
-        if channel.name == f"{interaction.user.display_name}'s Game":
-            await display_message(interaction, "Clearing thread.", "Please wait for a moment for a new game to be created.")
-            await channel.purge()
-            return channel
-        channel = channel.parent
+    thread_name = f"{interaction.user.name}'s Game".capitalize()
+    if interaction.channel.name == thread_name:
+        await display_message(interaction, "Clearing thread.", "Please wait for a moment for a new game to be created.")
+        await interaction.channel.purge()
+        return interaction.channel
+    
+    thread = await __search_for_thread(interaction, thread_name)
+    if not thread:
+        channel = interaction.channel.parent if isinstance(interaction.channel, discord.Thread) else interaction.channel
+        thread = await channel.create_thread(
+            name = thread_name,
+            type = discord.ChannelType.private_thread
+        )
+        thread.invitable = False
+        await thread.add_user(interaction.user)
+    else:
+        await display_message(interaction, f"Clearing your thread, {thread.mention}.", "Please wait for a moment for a new game to be created.")
+        await thread.purge()
+    return thread
 
-    channel = await channel.create_thread(
-        name = f"{interaction.user.display_name}'s Game",
-        type = discord.ChannelType.private_thread
-    )
-    await channel.add_user(interaction.user)
-    return channel
+async def __search_for_thread(interaction:discord.Interaction, thread_name:str):
+    guild = interaction.guild
+    for thread in guild.threads:
+        if thread.name == thread_name:
+            return thread
 
 bot.run(TOKEN)

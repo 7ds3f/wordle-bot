@@ -271,7 +271,7 @@ async def display_rules(game:Wordle, gamemode:str, rules:str):
     )
     await game.channel.send(embed=embed)
 
-async def display_error(object, title:str, message:str):
+async def display_error(object, title:str, message:str, mention:str = None):
     """
     Displays an error message to the channel OR responds to the interaction with an error message.
 
@@ -286,11 +286,11 @@ async def display_error(object, title:str, message:str):
         description = message
     )
     if isinstance(object, discord.Interaction):
-        await object.response.send_message(embed=embed, ephemeral=True)
+        await object.response.send_message(content=mention, embed=embed, ephemeral=True)
     else:
-        await object.send(embed=embed)
+        await object.send(content=mention, embed=embed)
 
-async def display_warning(object, title:str, message:str):
+async def display_warning(object, title:str, message:str, mention:str = None):
     """
     Displays a warning message to the channel OR responds to the interaction with a warning message.
 
@@ -305,11 +305,11 @@ async def display_warning(object, title:str, message:str):
         description = message
     )
     if isinstance(object, discord.Interaction):
-        await object.response.send_message(embed=embed, ephemeral=True)
+        await object.response.send_message(content=mention, embed=embed, ephemeral=True)
     else:
-        await object.send(embed=embed)
+        await object.send(content=mention, embed=embed)
 
-async def display_message(object, title:str, message:str):
+async def display_message(object, title:str, message:str, mention:str = None):
     """
     Displays a message to the channel or responds to the interaction with a message.
 
@@ -324,6 +324,6 @@ async def display_message(object, title:str, message:str):
         description = message
     )
     if isinstance(object, discord.Interaction):
-        await object.response.send_message(embed=embed, ephemeral=True)
+        await object.response.send_message(content=mention, embed=embed, ephemeral=True)
     else:
-        await object.send(embed=embed)
+        await object.send(content=mention, embed=embed)

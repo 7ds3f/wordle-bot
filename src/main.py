@@ -5,6 +5,7 @@ from discord.ext import commands
 from dotenv import load_dotenv
 from gamemodes.standard import Standard
 from users import User
+from wordle import display_error
 
 load_dotenv()
 
@@ -27,34 +28,48 @@ async def on_ready():
 async def standard(ctx):
     if ctx.author.name not in USERS:
         USERS.update({ctx.author.name : User(ctx.author)})
-
-    if USERS[ctx.author.name].in_game:
-        print(f'[WARNING] {ctx.author.name} tried to start a duplicate Wordle game instance')
-        # await warning embed
-    else:
-        standard = Standard(USERS[ctx.author.name])
-        await standard.run(ctx, None)
+        
+    if not (await __in_game(ctx)):
+        channel = await __create_private_thread(ctx)
+        standard = Standard(USERS[ctx.author.name], channel)
+        await standard.run(ctx)
 
 @bot.command(name="daily", aliases=["dw"], brief="Start the daily Wordle challenge", description="Start the daily Wordle challenge")
 async def daily(ctx):
     if ctx.author not in USERS:
         USERS.update({ctx.author.name : User(ctx.author)})
-
-    if USERS[ctx.author.name].in_game:
-        print(f'[WARNING] {ctx.author.name} tried to start a duplicate Wordle game instance')
-        # await warning embed
-    else:
+        
+    if not (await __in_game(ctx)):
         pass
 
 @bot.command(name="feudle", aliases=["fw"], brief="Start a Feudle game", description="Start a Feudle game")
 async def feudle(ctx):
     if ctx.author not in USERS:
         USERS.update({ctx.author.name : User(ctx.author)})
-
-    if USERS[ctx.author.name].in_game:
-        print(f'[WARNING] {ctx.author.name} tried to start a duplicate Wordle game instance')
-        # await warning embed
-    else:
+        
+    if not (await __in_game(ctx)):
         pass
 
+async def __in_game(ctx) -> bool:
+    if USERS[ctx.author.name].in_game:
+        print(f'[WARNING] {ctx.author.name} tried to start a duplicate Wordle game instance')
+        await display_error(ctx, "You're already in a Wordle game!", "Use '!q' to quit your game.")
+        return True
+    return False
+
+async def __create_private_thread(ctx):
+    channel = ctx.channel
+    if isinstance(channel, discord.Thread):
+        if channel.name == f"{ctx.author.display_name}'s Game":
+            await channel.purge()
+            return channel
+        channel = channel.parent
+    
+    channel = await channel.create_thread(
+        name = f"{ctx.author.display_name}'s Game",
+        type = discord.ChannelType.private_thread
+    )
+    await channel.add_user(ctx.author)
+    return channel
+    
 bot.run(TOKEN)

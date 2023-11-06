@@ -42,7 +42,7 @@ class Wordle:
         self.end_time = None
         "The time when the game terminated."
 
-        self.user.in_game = True
+        self.user.in_game = self
         for i in range(97, 123):
             self.letters_used[chr(i)] = Letter(chr(i))
 
@@ -76,8 +76,8 @@ class Wordle:
         """
         Terminates the game, preventing the user from playing.
         """
-        self.user.in_game = False
         self.end_time = time.time()
+        self.user.in_game = None
 
         if not self.is_terminated():
             self.user.forfeits += 1
@@ -103,7 +103,7 @@ class Wordle:
             list[Letter]: Returns the guess in color-code. Returns None if the user has already won,
             or if they ran out of attempts.
         """
-        if self.is_terminated():
+        if self.is_terminated() or not guess:
             return None
 
         guess = guess.strip().lower()
@@ -233,9 +233,9 @@ def update_game_embed(embed:discord.Embed, game:Wordle, word:list[Letter]) -> No
         inline = False
     )
     if game.has_guessed_word:
+        embed.color=discord.Color.green()
         for _ in range(3):
             embed.remove_field(game.max_attempts)
-            embed.color=discord.Color.green()
     else:
         qwerty_keyboard = [
             ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
@@ -271,12 +271,12 @@ async def display_rules(game:Wordle, gamemode:str, rules:str):
     )
     await game.channel.send(embed=embed)
 
-async def display_error(channel, title:str, message:str):
+async def display_error(object, title:str, message:str):
     """
-    Displays an error message to a channel.
+    Displays an error message to the channel OR responds to the interaction with an error message.
 
     Args:
-        channel: The channel the error message will be sent to.
+        object: The channel or interaction the error message will be sent to.
         title (str): The title of the embed.
         message (str): The message/description of the embed.
     """
@@ -285,14 +285,17 @@ async def display_error(channel, title:str, message:str):
         color = discord.Color.red(),
         description = message
     )
-    await channel.send(embed=embed)
+    if isinstance(object, discord.Interaction):
+        await object.response.send_message(embed=embed, ephemeral=True)
+    else:
+        await object.send(embed=embed)
 
-async def display_warning(channel, title:str, message:str):
+async def display_warning(object, title:str, message:str):
     """
-    Displays a warning message to a channel.
+    Displays a warning message to the channel OR responds to the interaction with a warning message.
 
     Args:
-        channel: The channel the warning message will be sent to.
+        object: The channel or interaction the warning message will be sent to.
         title (str): The title of the embed.
         message (str): The message/description of the embed.
     """
@@ -301,14 +304,17 @@ async def display_warning(channel, title:str, message:str):
         color = discord.Color.yellow(),
         description = message
     )
-    await channel.send(embed=embed)
+    if isinstance(object, discord.Interaction):
+        await object.response.send_message(embed=embed, ephemeral=True)
+    else:
+        await object.send(embed=embed)
 
-async def display_message(channel, title:str, message:str):
+async def display_message(object, title:str, message:str):
     """
-    Displays a message to a channel.
+    Displays a message to the channel or responds to the interaction with a message.
 
     Args:
-        channel: The channel the message will be sent to.
+        object: The channel or interaction the message will be sent to.
         title (str): The title of the embed.
         message (str): The message/description of the embed.
     """
@@ -317,4 +323,7 @@ async def display_message(channel, title:str, message:str):
         color = discord.Color.blurple(),
         description = message
     )
-    await channel.send(embed=embed)
+    if isinstance(object, discord.Interaction):
+        await object.response.send_message(embed=embed, ephemeral=True)
+    else:
+        await object.send(embed=embed)

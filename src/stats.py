@@ -2,7 +2,7 @@ import discord
 
 from users import User
 
-async def display_statistics(ctx, user:User):
+async def display_statistics(interaction:discord.Interaction, user:User):
     """
     Displays a user's statistics.
     """
@@ -26,4 +26,4 @@ async def display_statistics(ctx, user:User):
     else:
         embed.add_field(name="", value=f"Fastest Guess: {user.standard_fastest_guess/60:.2f} minute(s)", inline=False)
 
-    await ctx.send(embed=embed)
+    await interaction.response.send_message(embed=embed, ephemeral=True)

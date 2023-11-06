@@ -24,28 +24,31 @@ class Standard(Wordle):
     A class used to represent a standard Wordle game.
     """
 
-    def __init__(self, user, channel):
+    def __init__(self, user:User, channel):
         """
         Constructs a standard Wordle game.
 
         In a standard Wordle game, a user only has 6 guesses
         and the hidden word is 5-letters long.
+
+        Args:
+            user (User): The user playing this game.
+            channel: The channel this game is in.
         """
         super().__init__(random_word(), MAX_ATTEMPTS, user, channel)
         self.game_status = blank_game_embed(self, "Standard Wordle")
         
-    async def run(self, ctx):
+    async def run(self, interaction:discord.Interaction):
         """
         Runs the game.
 
         Args:
-            ctx: The context.
-            channel: The channel messages will be sent to.
+            interaction (Interaction): The interaction.
         """
         print(f"{self.user.user.name} started a Wordle game (mode:Standard, hidden_word={self.hidden_word})")
         await self.__display_rules()
         while not self.is_terminated():
-            guess = await self.__get_guess(ctx)
+            guess = await self.__get_guess(interaction)
             try:
                 color_codes = self.make_guess(guess)
                 if not color_codes: return
@@ -53,23 +56,16 @@ class Standard(Wordle):
                 await self.channel.send(embed=self.game_status)
             except InvalidGuess as e:
                 await display_warning(self.channel, "Invalid Guess", e.message)
-                pass
 
-    async def __get_guess(self, ctx) -> str:
+    async def __get_guess(self, interaction:discord.Interaction) -> str:
         def check_guess(message):
             if message.channel.id == self.channel.id and message.author == self.user.user:
                 return message
-
-        guess = await ctx.bot.wait_for("message", check=check_guess)
-        guess = guess.content
-        while guess == '' or guess[0] == "!":
-            if guess == '!q' or guess == '!quit':
-                self.terminate()
-                await display_error(self.channel, "Forfeited", "You have left the game.")
-                return None
-            guess = await ctx.bot.wait_for("message", check=check_guess)
-            guess = guess.content
-        return guess
+            
+        guess = await interaction.client.wait_for("message", check=check_guess)
+        if not self.is_terminated():
+            await guess.delete()
+            return guess.content
         
     async def __display_rules(self):
         await display_rules(

@@ -6,9 +6,9 @@ from dotenv import load_dotenv
 from gamemodes.standard import Standard
 from gamemodes.daily import Daily
 from gamemodes.feudle import Feudle
+from stats import display_statistics
 from users import User
-from wordle import display_error
-from statistics import display_statistics
+from wordle import display_message, display_error
 
 load_dotenv()
 
@@ -20,73 +20,88 @@ USERS = dict()
 'All the users who has interacted with the bot.'
 
 intents = discord.Intents.default()
+intents.members = True
 intents.message_content = True
-intents.commands = True
 bot = commands.Bot(command_prefix=COMMAND_PREFIX, intents=intents)
 
 @bot.event
 async def on_ready():
     print(f'{bot.user} is running!')
+    await bot.tree.sync()
     await bot.change_presence(activity=discord.Game(name="Wordle"))
 
-@bot.command(name="standard", aliases=["sw"], brief="Start a standard Wordle game", description="Start a standard Wordle game")
-async def standard(ctx):
-    if ctx.author.name not in USERS:
-        USERS.update({ctx.author.name : User(ctx.author)})
+@bot.tree.command(name="daily", description="Starts the daily Wordle challenge")
+async def daily(interaction:discord.Interaction):
+    await __update_users(interaction)
+    if not (await __in_game(interaction)):
+        channel = await __create_private_thread(interaction)
+        daily = Daily(USERS[interaction.user.name], channel)
+        if not interaction.response.is_done():
+            await interaction.response.send_message(f"Created the daily Wordle game in {channel.mention}.", ephemeral=True)
+        await daily.run(interaction)
 
-    if not (await __in_game(ctx)):
-        channel = await __create_private_thread(ctx)
-        standard = Standard(USERS[ctx.author.name], channel)
-        await standard.run(ctx)
+@bot.tree.command(name="feudle", description="Starts a Feudle game")
+async def feudle(interaction:discord.Interaction):
+    await __update_users(interaction)
+    if not (await __in_game(interaction)):
+        channel = await __create_private_thread(interaction)
+        if not interaction.response.is_done():
+            await interaction.response.send_message(f"Created a Feudle game in {channel.mention}.", ephemeral=True)
+        feudle = Feudle(USERS[interaction.user.name], channel)
+        await feudle.run(interaction)
 
-@bot.command(name="daily", aliases=["dw"], brief="Start the daily Wordle challenge", description="Start the daily Wordle challenge")
-async def daily(ctx):
-    if ctx.author.name not in USERS:
-        USERS.update({ctx.author.name : User(ctx.author)})
+@bot.tree.command(name="standard", description="Starts a standard Wordle game")
+async def standard(interaction:discord.Interaction):
+    await __update_users(interaction)
+    if not (await __in_game(interaction)):
+        channel = await __create_private_thread(interaction)
+        standard = Standard(USERS[interaction.user.name], channel)
+        if not interaction.response.is_done():
+            await interaction.response.send_message(f"Created a standard Wordle game in {channel.mention}.", ephemeral=True)
+        await standard.run(interaction)
 
-    if not (await __in_game(ctx)):
-        channel = await __create_private_thread(ctx)
-        daily = Daily(USERS[ctx.author.name], channel)
-        await daily.run(ctx)
+@bot.tree.command(name="quit", description="Quit the Wordle game you are playing (WARNING: Counts as a forfeit)")
+async def quit(interaction:discord.Interaction):
+    await __update_users(interaction)
+    if USERS[interaction.user.name].in_game:
+        USERS[interaction.user.name].in_game.terminate()
+        await display_error(interaction, "Forfeit", "You have left the game.")
+    else:
+        await display_error(interaction, "You are currently not in a game.", "Type '/standard' to start one.")
 
-@bot.command(name="feudle", aliases=["fw"], brief="Start a Feudle game", description="Start a Feudle game")
-async def feudle(ctx):
-    if ctx.author.name not in USERS:
-        USERS.update({ctx.author.name : User(ctx.author)})
-
-    if not (await __in_game(ctx)):
-        channel = await __create_private_thread(ctx)
-        feudle = Feudle(USERS[ctx.author.name], channel)
-        await feudle.run(ctx)
-
-@bot.command(name="stats", aliases=["s"], brief="Display a user's statistics", description="Display a user's statistics")
-async def stats(ctx, *args):
-    user = ctx.author.name if not args else args[0]
-    if ctx.author.name not in USERS:
-        USERS.update({ctx.author.name : User(ctx.author)})
+@bot.tree.command(name="stats", description="Displays your statistics")
+async def stats(interaction:discord.Interaction, name:str = None):
+    await __update_users(interaction)
+    user = name if name else interaction.user.name
+    member = discord.utils.get(interaction.guild.members, name=name)
+    print(interaction.guild.get_member_named(name))
     if user in USERS:
-        await display_statistics(ctx, USERS[user])
+        await display_statistics(interaction, USERS[user])
 
-async def __in_game(ctx) -> bool:
-    if USERS[ctx.author.name].in_game:
-        print(f'[WARNING] {ctx.author.name} tried to start a duplicate Wordle game instance')
-        await display_error(ctx, "You're already in a Wordle game!", "Use '!q' to quit your game.")
+async def __update_users(interaction:discord.Interaction) -> None:
+    if interaction.user.name not in USERS:
+        USERS.update({interaction.user.name : User(interaction.user)})
+
+async def __in_game(interaction:discord.Interaction) -> bool:
+    if USERS[interaction.user.name].in_game:
+        await display_error(interaction, "You're already in a Wordle game.", "Use /quit to quit your game.")
         return True
     return False
 
-async def __create_private_thread(ctx):
-    channel = ctx.channel
+async def __create_private_thread(interaction:discord.Interaction):
+    channel = interaction.channel
     if isinstance(channel, discord.Thread):
-        if channel.name == f"{ctx.author.display_name}'s Game":
+        if channel.name == f"{interaction.user.display_name}'s Game":
+            await display_message(interaction, "Clearing thread.", "Please wait for a moment for a new game to be created.")
             await channel.purge()
             return channel
         channel = channel.parent
 
     channel = await channel.create_thread(
-        name = f"{ctx.author.display_name}'s Game",
+        name = f"{interaction.user.display_name}'s Game",
         type = discord.ChannelType.private_thread
     )
-    await channel.add_user(ctx.author)
+    await channel.add_user(interaction.user)
     return channel
 
 bot.run(TOKEN)

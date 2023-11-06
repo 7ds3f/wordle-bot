@@ -29,5 +29,5 @@ class User:
         'The number of greens tiles a user has generated from playing.'
         self.standard_fastest_guess = -1
         'The fastest time it took a user to guess the correct word in a standard Wordle game.'
-        self.in_game = False
-        'Whether a user is currently playing a game.'
+        self.in_game = None
+        'The game the user is in.'

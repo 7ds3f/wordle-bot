@@ -80,6 +80,20 @@ async def stats(interaction:discord.Interaction, user:discord.Member = None):
         await __update_users(user)
     await display_statistics(interaction, USERS[user.name])
 
+@bot.tree.command(name="help", description="displays available commands")
+async def help(interaction:discord.Interaction):
+    embed = discord.Embed(
+            title="Commands",
+            description="Bottle has 3 gamemode commands, a quit command, and a stats command",
+            color=discord.Color.blurple()
+        )
+    embed.add_field(name="Standard:", value="Starts a game of Wordle with a random hidden word", inline=False)
+    embed.add_field(name="Daily:", value="Starts a game of Wordle with today's hidden word", inline=False)
+    embed.add_field(name="Feudle:", value="Starts a game of Feudle where you must guess the missing word in a sentence", inline=False)
+    embed.add_field(name="Quit:", value="Ends whatever game you are playing and deletes the thread, counts as a forfeit", inline=False)
+    embed.add_field(name="Stats:", value="Displays either your stats or the stats of the person mentioned", inline=False)
+    await interaction.response.send_message(embed=embed)
+
 async def __update_users(user:discord.Member) -> None:
     if user.name not in USERS:
         USERS.update({user.name : User(user)})

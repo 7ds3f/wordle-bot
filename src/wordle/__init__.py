@@ -117,8 +117,8 @@ class Wordle:
         if not guess.isalpha():
             raise InvalidGuess(guess, "Guess contains special characters.")
 
-        # if not enchant.Dict("en_US").check(guess) and guess != self.hidden_word:
-        #     raise InvalidGuess(guess, "Guess is not a word in the English dictionary.")
+        if not enchant.Dict("en_US").check(guess) and guess != self.hidden_word:
+            raise InvalidGuess(guess, "Guess is not a word in the English dictionary.")
 
         return self.__make_guess(guess)
 

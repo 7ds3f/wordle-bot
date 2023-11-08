@@ -1,5 +1,7 @@
 import discord
 import os
+import random
+import time
 
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -10,6 +12,14 @@ from stats import display_statistics
 from users import User
 from wordle import display_message, display_error
 
+def load_word_files(file_path):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        words = file.readlines()
+        file.close()
+        return words
+    
+standard_words = load_word_files("standard_words.txt")
+feudle_words = load_word_files("feudle_words.txt")
 load_dotenv()
 
 TOKEN = os.getenv("DISCORD_TOKEN")
@@ -36,7 +46,9 @@ async def daily(interaction:discord.Interaction):
     await __update_users(interaction.user)
     if not (await __in_game(interaction)):
         channel = await __create_private_thread(interaction)
-        daily = Daily(USERS[interaction.user.name], channel)
+        seed = time.strftime("%d/%m/%Y")
+        rand = random.Random(seed)
+        daily = Daily(USERS[interaction.user.name], channel, rand.choice(standard_words).strip())
         if not interaction.response.is_done():
             await interaction.response.send_message(f"Created the daily Wordle game in {channel.mention}.", ephemeral=True)
         await daily.run(interaction)
@@ -48,7 +60,7 @@ async def feudle(interaction:discord.Interaction):
         channel = await __create_private_thread(interaction)
         if not interaction.response.is_done():
             await interaction.response.send_message(f"Created a Feudle game in {channel.mention}.", ephemeral=True)
-        feudle = Feudle(USERS[interaction.user.name], channel)
+        feudle = Feudle(USERS[interaction.user.name], channel, random.choice(feudle_words).strip())
         await feudle.run(interaction)
 
 @bot.tree.command(name="standard", description="Starts a standard Wordle game")
@@ -56,7 +68,7 @@ async def standard(interaction:discord.Interaction):
     await __update_users(interaction.user)
     if not (await __in_game(interaction)):
         channel = await __create_private_thread(interaction)
-        standard = Standard(USERS[interaction.user.name], channel)
+        standard = Standard(USERS[interaction.user.name], channel, random.choice(standard_words).strip())
         if not interaction.response.is_done():
             await interaction.response.send_message(f"Created a standard Wordle game in {channel.mention}.", ephemeral=True)
         await standard.run(interaction)

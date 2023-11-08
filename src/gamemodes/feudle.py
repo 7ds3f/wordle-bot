@@ -5,21 +5,8 @@ from wordle import *
 from wordle.exceptions import InvalidGuess
 from wordle.letter import blank_square
 
-WORD_FILE_PATH = "feudle_words.txt"
-"The file path to the words a Feudle game will use."
 MAX_ATTEMPTS = 6
 "The maximum attempts a Feudle game will allow."
-
-def random_word() -> str:
-    """
-    Generates a random word from the text file indicated by WORD_FILE_PATH.
-
-    Returns:
-        str: A random word from the standard word pool.
-    """
-    with open(WORD_FILE_PATH, 'r', encoding='utf-8') as file:
-        words = file.readlines()
-        return random.choice(words).strip()
 
 def word_phrase(hidden_word) -> str:
     """
@@ -58,7 +45,7 @@ class Feudle(Wordle):
     A class used to represent a Feudle game.
     """
 
-    def __init__(self, user:User, channel):
+    def __init__(self, user:User, channel, hidden_word):
         """
         Constructs a Feudle game.
 
@@ -72,7 +59,7 @@ class Feudle(Wordle):
             channel: The channel this game is in.
         """
         print(f"Generating a phrase for a new Feudle game...")
-        self.random_word = random_word()
+        self.random_word = hidden_word
         self.word_phrase = word_phrase(self.random_word)
         # while not self.word_phrase:
         #     self.random_word = random_word()

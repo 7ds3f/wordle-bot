@@ -1,30 +1,15 @@
-import random
-
 from wordle import *
 from wordle.exceptions import InvalidGuess
 
-WORD_FILE_PATH = "standard_words.txt"
-"The file path to the words a standard Wordle game will use."
 MAX_ATTEMPTS = 6
 "The maximum attempts a standard Wordle game will allow."
-
-def random_word() -> str:
-    """
-    Generates a random word from the text file indicated by WORD_FILE_PATH.
-
-    Returns:
-        str: A random word from the standard word pool.
-    """
-    with open(WORD_FILE_PATH, 'r', encoding='utf-8') as file:
-        words = file.readlines()
-        return random.choice(words).strip()
 
 class Standard(Wordle):
     """
     A class used to represent a standard Wordle game.
     """
 
-    def __init__(self, user:User, channel):
+    def __init__(self, user:User, channel, hidden_word):
         """
         Constructs a standard Wordle game.
 
@@ -35,7 +20,7 @@ class Standard(Wordle):
             user (User): The user playing this game.
             channel: The channel this game is in.
         """
-        super().__init__(random_word(), MAX_ATTEMPTS, user, channel)
+        super().__init__(hidden_word, MAX_ATTEMPTS, user, channel)
         self.game_status = blank_game_embed(self, "Standard Wordle")
         
     async def run(self, interaction:discord.Interaction):

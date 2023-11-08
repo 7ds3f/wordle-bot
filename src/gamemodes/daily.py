@@ -1,33 +1,15 @@
-import random
-import time
-
 from wordle import *
 from wordle.exceptions import InvalidGuess
 
-WORD_FILE_PATH = "standard_words.txt"
-"The file path to the words a daily Wordle game will use."
 MAX_ATTEMPTS = 6
 "The maximum attempts a daily Wordle game will allow."
-
-def daily_word() -> str:
-    """
-    Picks a new word from the text file indicated by WORD_FILE_PATH per day.
-
-    Returns:
-        str: A word from the daily word pool.
-    """
-    seed = time.strftime("%d/%m/%Y")
-    rand = random.Random(seed)
-    with open(WORD_FILE_PATH, 'r', encoding='utf-8') as file:
-        words = file.readlines()
-        return rand.choice(words).strip()
 
 class Daily(Wordle):
     """
     A class used to represent a daily Wordle game.
     """
 
-    def __init__(self, user:User, channel):
+    def __init__(self, user:User, channel, hidden_word):
         """
         Constructs a daily Wordle game.
 
@@ -38,7 +20,7 @@ class Daily(Wordle):
             user (User): The user playing this game.
             channel: The channel this game is in.
         """
-        super().__init__(daily_word(), MAX_ATTEMPTS, user, channel)
+        super().__init__(hidden_word, MAX_ATTEMPTS, user, channel)
         self.game_status = blank_game_embed(self, "Daily Wordle")
 
     async def run(self, interaction:discord.Interaction):

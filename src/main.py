@@ -106,7 +106,7 @@ async def help(interaction:discord.Interaction):
     embed.add_field(name="Feudle:", value="Starts a game of Feudle where you must guess the missing word in a sentence", inline=False)
     embed.add_field(name="Quit:", value="Ends whatever game you are playing and deletes the thread, counts as a forfeit", inline=False)
     embed.add_field(name="Stats:", value="Displays either your stats or the stats of the person mentioned", inline=False)
-    await interaction.response.send_message(embed=embed)
+    await interaction.response.send_message(embed=embed, ephemeral=True)
 
 async def __update_users(user:discord.Member) -> None:
     if user.name not in USERS:

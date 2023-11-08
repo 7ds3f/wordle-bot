@@ -135,6 +135,8 @@ class Wordle:
             self.user.wins += 1
             self.has_guessed_word = True
             self.terminate()
+            print(self.user.user.name, ' has won their game')
+            self.won = True
             return [Letter(char, LetterState.GREEN) for char in guess]
         return self.__color_code_algorithm(guess)
 
@@ -180,6 +182,8 @@ class Wordle:
         if self.attempt_number == self.max_attempts:
             self.user.losses += 1
             self.terminate()
+            print(self.user.user.name, ' has lost their game')
+            self.won = False
 
 def blank_game_embed(game:Wordle, gamemode:str) -> discord.Embed:
     """

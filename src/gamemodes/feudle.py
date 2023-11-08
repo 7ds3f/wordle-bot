@@ -87,6 +87,13 @@ class Feudle(Wordle):
             except InvalidGuess as e:
                 await display_warning(self.channel, "Invalid Guess", e.message)
 
+        if self.won:
+            await interaction.channel.send('Congrats, you guessed {} in {} guess(es)!'
+                                           .format(self.hidden_word, self.attempt_number))
+        else:
+            await interaction.channel.send('You\'ve run out of guesses, the word was {}.'
+                                           .format(self.hidden_word))
+
     async def __get_guess(self, interaction:discord.Interaction) -> str:
         def check_guess(message):
             if message.channel.id == self.channel.id and message.author == self.user.user:

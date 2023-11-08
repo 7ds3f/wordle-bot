@@ -78,7 +78,9 @@ async def quit(interaction:discord.Interaction):
     await __update_users(interaction.user)
     if USERS[interaction.user.name].in_game:
         USERS[interaction.user.name].in_game.terminate()
-        await display_error(interaction, "Forfeit", "You have left the game.")
+        print(interaction.user.name, 'has forfeited their game')
+        await display_error(interaction, "Forfeit", "You have left the game, This thread will be deleted in 5 seconds")
+        time.sleep(5)
         await (await __search_for_thread(interaction, f"{interaction.user.name}'s Game".capitalize())).delete()
     else:
         await display_error(interaction, "You are currently not in a game.", "Type '/standard' to start one.")

@@ -1,0 +1,27 @@
+{
+    "gamemodes": {
+        "Standard": {
+            "wins": {
+                "svensix": 112,
+                "lil.eggie": 23
+            },
+            "losses": {},
+            "fastest_guess": {}
+        },
+        "Daily": {
+            "wins": {},
+            "losses": {},
+            "fastest_guess": {}
+        },
+        "Feudle": {
+            "wins": {},
+            "losses": {},
+            "fastest_guess": {}
+        },
+        "Multiplayer": {
+            "wins": {},
+            "losses": {},
+            "fastest_guess": {}
+        }
+    }
+}

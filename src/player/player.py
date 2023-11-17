@@ -31,26 +31,29 @@ class Player:
         'The game the player is in.'
         self.path_to_stats = os.path.join(player_config.get('StatisticsFolder'), user.name + "_stats.json")
         'The path to this Player\'s statistics json file'
+        self.stats = None
+        'A dictionary of all Player statistics in the Player\'s stats json file'
 
         # locate PLayer stats json
         # if Player stats file exists + is accessible
         if os.path.isfile(self.path_to_stats) and os.access(self.path_to_stats, os.R_OK):
             print(f"Statistics for Player {self.user.name} loaded successfully!")
+            with open(self.path_to_stats, 'r') as file:
+                    self.stats = json.load(file)
         # if Player stats file does not exist
         else:
             print(f"Statistics missing for Player {self.user.name}. Creating new file...")
             # create a path for new statistics json
             new_stats_path = os.path.join(player_config.get('StatisticsFolder'), self.user.name + "_stats.json")
-            # try to copy blank stats template to new path
+            # try to copy blank stats template to new path and set player stats member variable
             try:
                 shutil.copy(player_config.get("StatisticsTemplate"), new_stats_path)
+                with open(self.path_to_stats, 'r') as file:
+                    self.stats = json.load(file)
                 print(f"Successfully created new statistics json for Player {self.user.name}!")
             except Exception as e:
                 print(f"Failed to create new statistics json for Player {self.user.name}: {e}")
         
-        with open(self.path_to_stats, 'r') as file:
-            self.stats = json.load(file)
-            'A dictionary of all Player statistics in the Player\'s stats json file'
 
     def update_fastest_guess(self, gamemode: str, time: float):
         if self.stats["gamemodes"][gamemode]["fastest_guess"] < 0 or time < self.stats["gamemodes"][gamemode]["fastest_guess"]:

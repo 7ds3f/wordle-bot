@@ -3,6 +3,7 @@ import graphics
 import time
 import wordle
 import player
+import json
 
 from abc import abstractmethod
 
@@ -75,13 +76,12 @@ class Game:
         player_stats = self.player.stats["gamemodes"][self.mode]
 
         # game termination stats
-        print("game terminated")
         if self.has_won():
             print(f"{self.player.user} has WON their Wordle game (mode:{self.mode}, hidden_word={self.wordle.hidden_word})")
             player_stats["wins"] += 1
             self.player.update_fastest_guess(self.mode, self.elapsed_time())
         elif self.has_forfeited():
-            print(f"{self.player.user} has QUIT their Wordle game (mode:{self.mode}, hidden_word={self.wordle.hidden_word})")
+            print(f"{self.player.user} has FORFEITED their Wordle game (mode:{self.mode}, hidden_word={self.wordle.hidden_word})")
             player_stats["forfeits"] += 1
         else:
             print(f"{self.player.user} has LOST their Wordle game (mode:{self.mode}, hidden_word={self.wordle.hidden_word})")
@@ -97,6 +97,9 @@ class Game:
 
         # WRITE updated stats to Player .json
         self.player.rewrite_player_json()
+
+        # UPDATE leader board
+        self.update_leaderboard()
             
     async def wait_for_guess(self, interaction: discord.Interaction) -> str:
         """
@@ -157,6 +160,15 @@ class Game:
                     inline = False
                 )
     
+    # TODO: FINISH THIS
+    def update_leaderboard(self):
+        """
+        Updates the leaderboard if the player surpasses someone else on the leaderboard.
+        """
+        # TODO: create a config for leaderboards and remove this hardcoded path
+        with open("src/assets/leaderboards/global_leaderboard.json", 'r') as file:
+            leaderboard = json.load(file)
+
     def create_game_embed(self, color: discord.Color = discord.Color.yellow()) -> discord.Embed:
         """
         Creates a blank game state of this Wordle game. This is updated after every guess

@@ -1,11 +1,6 @@
-<div style="text-align: right;">
-  <img src="./src/assets/bottle.png" alt="Bottle Logo" width="100"/>
-</div>
-
 # BOTTLE
 
 A Discord Wordle bot.
-
 
 Created by EggieVAL, CasterNinja, LucaVits, SoumayahIlias, timcuber37, and 7ds3f.
 
@@ -25,3 +20,7 @@ This bot requires Python, PyEnchant and Discord to function properly.
 6. Add the bot to your server, Tutorial [Linked Here](https://discordjs.guide/preparations/adding-your-bot-to-servers.html#creating-and-using-your-invite-link)
 7. Locate and run the code: Find "...\wordle-bot\src\main.py". In a terminal, run the command `python /path/to/your/directory/main.py`.
 The code should output "Bottle is Running!" and the bot should be online in the server, to stop running the bot kill the terminal.
+
+8. To get started with BOTTLE, try running `/help` to get started
+
+<img src="./src/assets/bottle.png" alt="Bottle Logo" width="100"/>

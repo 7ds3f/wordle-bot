@@ -1,5 +1,6 @@
 # BOTTLE
-![Bottle Logo](./src/assets/bottle.png)
+<img src="./src/assets/bottle.png" alt="Bottle Logo" width="100"/>
+
 A Discord Wordle bot.
 
 Created by EggieVAL, CasterNinja, LucaVits, SoumayahIlias, timcuber37, and 7ds3f.

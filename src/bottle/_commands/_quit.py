@@ -44,7 +44,7 @@ async def __not_in_game(interaction: discord.Interaction) -> None:
     await graphics.display_msg_embed(
         obj = interaction,
         title = 'You are currently not in a game',
-        message = 'Type /standard to start one',
+        message = 'Type /<gamemode> to start one',
         color = discord.Color.red()
     )
     

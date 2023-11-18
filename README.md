@@ -22,6 +22,6 @@ Below is an example image of how you should setup your `.env` file:
 7. Locate and run the code: Find "...\wordle-bot\src\main.py". In a terminal, run the command `python /path/to/your/directory/main.py`.
 The code should output "Bottle is Running!" and the bot should be online in the server, to stop running the bot kill the terminal.
 
-8. To get started with BOTTLE, try running `/help` to get started
+8. To get started with BOTTLE, use the `/help` command in Discord to get started
 
 <img src="./src/assets/bottle.png" alt="Bottle Logo" width="160"/>

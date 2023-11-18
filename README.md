@@ -13,7 +13,7 @@ This bot requires Python, PyEnchant and Discord to function properly.
 
 ## How To Run Bottle
 1. Download the repo code
-2. install the required libraries mentioned above
+2. Install the required libraries mentioned above
 3. Get a Discord bot token using this [Web Tutorial](https://discordgsm.com/guide/how-to-get-a-discord-bot-token). Save The token and **DO NOT SHARE YOUR TOKEN WITH ANYONE**
 4. Create a `.env` file in "...\wordle-bot\src\assets\". Paste "DISCORD_TOKEN=*PASTE BOT TOKEN HERE*" in that file. **AGAIN, DO NOT SHARE THIS WITH ANYONE** 
 Below is an example image of how you should setup your `.env` file:

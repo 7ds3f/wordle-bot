@@ -19,8 +19,8 @@ This bot requires Python, PyEnchant and Discord to function properly.
 Below is an example image of how you should setup your `.env` file:
 ![Example Environment Variable Image](./src/assets/exampleENV.jpg)
 6. Add the bot to your server, Tutorial [Linked Here](https://discordjs.guide/preparations/adding-your-bot-to-servers.html#creating-and-using-your-invite-link)
-7. Locate and run the code: Find "...\wordle-bot\src\main.py". In a terminal, run the command `python /path/to/your/directory/main.py`.
-The code should output "Bottle is Running!", and the bot should now be online in your server. To stop running the bot, kill the terminal.
+7. Locate and run the code: Find "...\wordle-bot\src\main.py" in the downloaded files. In a terminal, run the command `python /path/to/main.py`.
+This should output "Bottle is Running!" and the bot should now be online in your server. To stop running the bot, kill the terminal.
 
 8. To get started with BOTTLE, use the `/help` command in Discord to get started
 

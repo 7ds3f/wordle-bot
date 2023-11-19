@@ -8,10 +8,7 @@ from ..bot import bot
     name = 'createlobby',
     description = 'Creates a lobby where players can play against each other'
 )
-async def createlobby(
-    interaction: discord.Interaction,
-    private: bool = False
-) -> None:
+async def createlobby(interaction: discord.Interaction) -> None:
     """
     Creates a gaming lobby where players can join. This enables players to face against each other
     players in a Wordle game.
@@ -21,18 +18,12 @@ async def createlobby(
     type in the respective command. So, if they wanted to play Feudle, they will type /feudle after
     they created a lobby.
     """
-    # Prevents the bot from throwing an error for taking too long to send a response
-    await interaction.response.defer(
-        ephemeral = False,
-        thinking = True
-    )
-    user = interaction.user
-    guild = interaction.guild
-    await update_players(user=user, guild=guild)
-    player = PLAYERS[user.name]
+    await interaction.response.defer(ephemeral=False, thinking=True)
+    await update_players(interaction=interaction)
+    player = PLAYERS[interaction.user.name]
     
     await interaction.followup.send(
-        embed = lobby.Lobby.build_menu(user),
-        ephemeral = True,
+        embed = lobby.Lobby.build_menu(interaction.user),
+        ephemeral = False,
         view = lobby.Lobby(player=player)
     )

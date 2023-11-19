@@ -4,15 +4,12 @@ import random
 import requests
 import wordle
 
-from .game import Game, player
-from .game_config import GameConfig
+from ..game import Game, player
 
 class Feudle(Game):
     """
     This class represents a Feudle game.
     """
-    config = GameConfig('Feudle')
-    'The default configuration for a Feudle game.'
     
     def __init__(
         self,
@@ -22,25 +19,23 @@ class Feudle(Game):
     ) -> None:
         hidden_word = Feudle.random_word()
         self.phrase = Feudle.random_phrase(hidden_word)
-        self.phrase_embed = self.create_phrase_embed()
+        'The phrase this game is using.'
+        self.phrase_embed = self.build_phrase_embed()
+        'The phrase in an embed.'
         
         super().__init__(
-            wordle = wordle.Wordle(
-                hidden_word = hidden_word,
-                max_attempts = Feudle.config.attempts,
-                language = (Feudle.config.language if language is None else language) if Feudle.config.valid_only else language
-            ),
+            hidden_word = hidden_word,
             player = player,
-            mode = Feudle.config.mode
+            mode = 'Feudle',
+            language = language
         )
-        self.embeds.append(self.phrase_embed)
         
-        
+    @staticmethod
     def random_word() -> str:
         """
-        Generates a random word for a game.
+        Generates a random word.
         """
-        return random.choice(Feudle.config.dictionary)
+        return random.choice(wordle.GamemodeConfig.dictionary('Feudle'))
     
     def random_phrase(word: str) -> str | None:
         """
@@ -66,7 +61,7 @@ class Feudle(Game):
                 return random.choice(phrases)
         except: pass
     
-    def create_phrase_embed(self) -> discord.Embed:
+    def build_phrase_embed(self) -> discord.Embed:
         """
         Creates an embed that contains the phrase of a game.
         """
@@ -80,6 +75,9 @@ class Feudle(Game):
         """
         The rules of a Feudle game.
         """
+        length = str(len(self.wordle.hidden_word))
+        a = 'an' if length == '10' or length[0] == '1' or length[0] == '8' else 'a'
+        
         return f"""
                 **How to play?**
                 You have {self.wordle.max_attempts} attempts to guess the word.
@@ -90,5 +88,5 @@ class Feudle(Game):
                 
                 *{self.phrase}*
                 
-                Type a {len(self.wordle.hidden_word)}-letter word to start playing.
+                Type {a} {length}-letter word to start playing.
                 """

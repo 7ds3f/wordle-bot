@@ -1,17 +1,9 @@
-# events
-from .on_ready import on_ready
-
-# gamemodes
-from .gamemodes import *
-
-# utilities
-from .help import help
-from .quit import quit
+from .createlobby import createlobby
 from .createroom import createroom
 from .delroom import delroom
-from .myroom import myroom
-from .createlobby import createlobby
-
-# extras
-from .stats import stats
+from .gamemodes import *
+from .help import help
 from .leaderboard import leaderboard
+from .myroom import myroom
+from .quit import quit
+from .stats import stats

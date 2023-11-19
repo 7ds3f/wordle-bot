@@ -1,6 +1,7 @@
-# Python
 __pycache__/
 
-# Assets
 *.env
-*.stats.json
+*.json
+
+!.template.json
+!square_letters.json

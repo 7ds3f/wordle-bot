@@ -1,5 +1,6 @@
 import discord
 
+from player import update_players
 from ..bot import bot
 
 @bot.tree.command(
@@ -7,18 +8,23 @@ from ..bot import bot
     description = 'Displays available commands'
 )
 async def help(interaction: discord.Interaction) -> None:
+    """
+    Displays available commands to the user who executed this command.
+    """
+    await interaction.response.defer(ephemeral=True, thinking=True)
+    await update_players(interaction=interaction)
+    
     embed = discord.Embed(
         title = 'Help',
         description = 'List of all commands',
-        color = discord.Color.blurple()
+        color = discord.Color.greyple()
     )
     embed.set_thumbnail(url=bot.user.avatar.url)
     
     for slash_cmd in bot.tree.walk_commands():
         embed.add_field(
-            name = f'/{slash_cmd.name}',
-            value = slash_cmd.description if slash_cmd.description else slash_cmd.name,
-            inline = False
+            name = f'**/{slash_cmd.name}**',
+            value = slash_cmd.description,
+            inline = True
         )
-    
-    await interaction.response.send_message(embed=embed, ephemeral=True)
+    await interaction.followup.send(embed=embed)

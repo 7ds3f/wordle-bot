@@ -1,8 +1,10 @@
 from .room import (
-    Config,
-    config,
-    default_config,
+    Room,
+    get_room_name,
+    get_room_type,
     create_room,
     search_room,
-    get_room_name
+    config,
+    cfg_file,
+    DefaultConfig
 )

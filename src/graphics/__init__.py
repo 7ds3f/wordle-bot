@@ -1,2 +1,2 @@
-from .arrow_menu_navigation import ArrowMenuNavigation
 from .display_msg_embed import display_msg_embed
+from .menus import *

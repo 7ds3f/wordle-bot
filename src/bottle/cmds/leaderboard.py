@@ -50,7 +50,7 @@ async def leaderboard(
         await graphics.display_msg_embed(
             interaction,
             title = "Please specify a gamemode",
-            message = "Ex. /leaderboard standard",
+            description = "Ex. /leaderboard standard",
             color = discord.Color.red()
         )
         return
@@ -61,7 +61,7 @@ async def leaderboard(
         await graphics.display_msg_embed(
             interaction,
             title = "Gamemode does not exist",
-            message = "Enter a valid gamemode",
+            description = "Enter a valid gamemode",
             color = discord.Color.red()
         )
         return

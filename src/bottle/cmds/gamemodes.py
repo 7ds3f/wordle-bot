@@ -1,7 +1,7 @@
 import discord
-import games
+import game
 import graphics
-import room
+import lobby
 
 from player import *
 from ..bot import bot
@@ -14,15 +14,10 @@ async def standard(interaction: discord.Interaction) -> None:
     """
     Starts a standard Wordle game for the user who used the slash command: /standard.
     """
-    # Prevents the bot from throwing an error for taking too long to send a response
-    await interaction.response.defer(
-        ephemeral = True,
-        thinking = True
-    )
-    # Creates a room if the user does not have one
-    await __create_room(interaction)
+    await interaction.response.defer(ephemeral=True, thinking=True)
+    await update_players(interaction=interaction)
     player = PLAYERS[interaction.user.name]
-    await games.Standard(player=player).run(interaction)
+    await __run_game(interaction=interaction, mode='Standard', player=player)
 
 @bot.tree.command(
     name = 'daily',
@@ -32,15 +27,10 @@ async def daily(interaction: discord.Interaction) -> None:
     """
     Starts the daily Wordle challenge for the user who used the slash command: /daily.
     """
-    # Prevents the bot from throwing an error for taking too long to send a response
-    await interaction.response.defer(
-        ephemeral = True,
-        thinking = True
-    )
-    # Creates a room if the user does not have one
-    await __create_room(interaction)
+    await interaction.response.defer(ephemeral=True, thinking=True)
+    await update_players(interaction=interaction)
     player = PLAYERS[interaction.user.name]
-    await games.Daily(player=player).run(interaction)
+    await __run_game(interaction=interaction, mode='Daily', player=player)
 
 @bot.tree.command(
     name = 'feudle',
@@ -50,82 +40,37 @@ async def feudle(interaction: discord.Interaction) -> None:
     """
     Starts a Feudle game for the user who used the slash command: /feudle.
     """
-    # Prevents the bot from throwing an error for taking too long to send a response
-    await interaction.response.defer(
-        ephemeral = True,
-        thinking = True
-    )
-    # Creates a room if the user does not have one
-    await __create_room(interaction)
+    await interaction.response.defer(ephemeral=True, thinking=True)
+    await update_players(interaction=interaction)
     player = PLAYERS[interaction.user.name]
-    await games.Feudle(player=player).run(interaction)
-
-async def __create_room(interaction: discord.Interaction) -> None:
-    user = interaction.user
-    guild = interaction.guild
-    channel = interaction.channel
-    updated = await update_players(user=user, guild=guild)
-    player = PLAYERS[user.name]
-    
-    if updated:
-        if not player.room:
-            player.room, _ = await room.create_room(
-                player = user,
-                guild = guild,
-                channel = channel
-            )
-            await __created_room(interaction, player.room)
-            await player.room.add_user(user)
-        elif interaction.channel.name == player.room.name:
-            await __clearing_room(interaction)
-        else:
-            await __clearing_room(interaction, player.room)
-    else:
-        player.room, created = await room.create_room(
-            player = user,
-            guild = guild,
-            channel = channel
-        )
-        if created:
-            await __created_room(interaction, player.room)
-            await player.room.add_user(user)
-        elif interaction.channel.name == player.room.name:
-            await __clearing_room(interaction)
-        else:
-            await __clearing_room(interaction, player.room)
-
-async def __created_room(
+    await __run_game(interaction=interaction, mode='Feudle', player=player)
+        
+async def __run_game(
     interaction: discord.Interaction,
-    room: discord.Thread
+    *,
+    mode: str,
+    player: Player
 ) -> None:
-    await graphics.display_msg_embed(
-        obj = interaction,
-        title = 'Created your personalize game room',
-        message = f'Access your room here: [{room.mention}]',
-        color = discord.Color.blurple()
-    )
+    if not await __is_lobby_owner(interaction=interaction, mode=mode, player=player):
+        wordle = await game.create_game(interaction=interaction, mode=mode, player=player)
+        await wordle.run(interaction)
     
-async def __clearing_room(
+async def __is_lobby_owner(
     interaction: discord.Interaction,
-    room: discord.Thread | None = None
-) -> None:
-    if room:
-        await room.edit(archived=False)
-        try: await room.purge()
-        except: pass
+    *,
+    mode: str,
+    player: Player
+) -> bool:
+    if not isinstance(player.in_game, lobby.Lobby):
+        return False
+    if player.in_game.players[player.user.name]['owner']:
+        player.in_game.mode = mode
+    
         await graphics.display_msg_embed(
             obj = interaction,
-            title = 'Cleared your game room',
-            message = f'Visit your room [{room.mention}] to play',
+            title = f'Changed mode to {mode}',
+            description = '',
             color = discord.Color.blurple()
         )
-    else:
-        await interaction.channel.edit(archived=False)
-        await graphics.display_msg_embed(
-            obj = interaction,
-            title = 'Clearing your room',
-            message = 'Please wait for a moment for a new game to be created',
-            color = discord.Color.blurple()
-        )
-        try: await interaction.channel.purge()
-        except: pass
+        return True
+    return False

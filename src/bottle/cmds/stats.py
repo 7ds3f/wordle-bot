@@ -1,9 +1,8 @@
 import discord
 import graphics
-import room
 
-from ..bot import bot
 from player import *
+from ..bot import bot
 
 @bot.tree.command(
     name = 'stats',
@@ -11,73 +10,63 @@ from player import *
 )
 async def stats(
     interaction: discord.Interaction,
-    user: discord.Member | discord.User = None
+    user: discord.Member | discord.User | None = None,
+    showoff: bool = False,
+    dropdown: bool = True
 ) -> None:
     """
-    Displays the statistics for a player.
+    Displays the statistics of a player.
     """
-    # Prevents the bot from throwing an error for taking too long to send a response
-    await interaction.response.defer(
-        ephemeral = True,
-        thinking = True
-    )
-
+    await interaction.response.defer(ephemeral=(not showoff), thinking=True)
+    
     user = interaction.user if user is None else user
     guild = interaction.guild
     await update_players(user=user, guild=guild)
     player = PLAYERS[user.name]
+    
+    if dropdown:
+        menus: dict[str, discord.Embed] = {}
+        options: dict[str, str] = {}
+        
+        for mode in player.data['stats']:
+            menus[mode] = build_stats_menu(player, mode)
+            options[mode] = f'Display {mode} statistics'
+        
+        await graphics.DropdownNavigationMenu.create_and_display(interaction=interaction, menus=menus, options=options)
+    else:
+        menus = [build_stats_menu(player, mode) for mode in player.data['stats']]
+        await graphics.ArrowNavigationMenu.create_and_display(interaction=interaction, menus=menus)
 
-    menus = [build_stats_menu(interaction, player, gamemode) for gamemode in player.stats['gamemodes']]
-    await interaction.followup.send(
-        embed = menus[0],
-        ephemeral = True,
-        view = graphics.ArrowMenuNavigation(menus=menus)
-    )
-
-def build_stats_menu(
-    interaction: discord.Interaction,
-    player: Player,
-    gamemode: str
-) -> discord.Embed:
+def build_stats_menu(player: Player, mode: str) -> discord.Embed:
     """
-    Builds a statistics embed for one gamemode in a Player's statistics dictionary.
-
-    Returns:
-        Returns a Discord Embed.
+    Builds a statistics embed of the player.
     """
-    gamemode_stats: dict[str, int] = player.stats['gamemodes'][gamemode]
-    total_games_completed = gamemode_stats['wins'] + gamemode_stats['losses']
-    total_games_played = total_games_completed + gamemode_stats['forfeits']
-    win_rate = None if total_games_completed == 0 else gamemode_stats['wins'] * 100 / total_games_completed
-
+    
+    stats: dict[str, int] = player.data['stats'][mode]
+    total_games_completed = stats['wins'] + stats['losses']
+    total_games_played = total_games_completed + stats['forfeits']
+    winrate = None if total_games_completed == 0 else stats['wins'] * 100 / total_games_completed
+    
     menu = discord.Embed(
-        title = f'{gamemode} Statistics',
+        title = f'{mode} Statistics',
         color = discord.Color.greyple(),
         description = f"""
-                       {'***1 Game Completed****' if total_games_completed == 1 else f'***{total_games_completed} Games Completed***'}
+                       {'***1 Game Completed***' if total_games_completed == 1 else f'***{total_games_completed} Games Completed***'}
                        {'***1 Game Played***' if total_games_played == 1 else f'***{total_games_played} Games Played***'}
                        """
     )
-    menu.set_author(
-        name = player.user.display_name,
-        icon_url = player.user.avatar.url
-    )
-    menu.set_thumbnail(url=interaction.client.user.avatar.url)
+    menu.set_thumbnail(url=player.user.avatar.url)
     menu.add_field(
         name = '',
-        value = f'**Win Rate**: None' if win_rate is None else f'**Win Rate**: {win_rate:.2f}%',
-        inline = False
+        value = f'**Win Rate**: N/A' if winrate is None else f'**Win Rate**: {winrate:.2f}%',
+        inline = False 
     )
-    for stat in gamemode_stats:
-        value = gamemode_stats[stat]
-        name = ' '.join(stat.split('_')).title()
-
-        if stat == 'fastest_guess':
-            value = None if value < 0 else f'{value:.2f} seconds'
+    
+    for key, value in stats.items():
+        name = ' '.join(key.split('_')).title()
         
-        menu.add_field(
-            name = name,
-            value = value,
-            inline = True
-        )
+        if key == 'fastest_guess':
+            value = 'N/A' if value < 0 else f'{value:.2f} seconds'
+            
+        menu.add_field(name=name, value=value, inline = True)
     return menu

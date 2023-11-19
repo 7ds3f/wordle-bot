@@ -1,3 +1,6 @@
+# Python
 __pycache__/
+
+# Assets
 *.env
-env
+*.stats.json

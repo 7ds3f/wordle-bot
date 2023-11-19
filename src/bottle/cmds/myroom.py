@@ -18,8 +18,9 @@ async def myroom(interaction: discord.Interaction) -> None:
         ephemeral = True,
         thinking = True
     )
-    updated = await update_players(interaction)
     user = interaction.user
+    guild = interaction.guild
+    updated = await update_players(user=user, guild=guild)
     player = PLAYERS[user.name]
     
     # If the user has been updated, then the information they hold will always be true.
@@ -33,7 +34,7 @@ async def myroom(interaction: discord.Interaction) -> None:
             await __room_does_not_exist(interaction)
         return
     
-    player.room = await room.search_room(interaction.guild, user)
+    player.room = await room.search_room(player=user, guild=guild)
     if player.room:
         await __display_room(interaction, player)
     else:

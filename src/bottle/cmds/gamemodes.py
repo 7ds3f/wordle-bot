@@ -61,13 +61,19 @@ async def feudle(interaction: discord.Interaction) -> None:
     await games.Feudle(player=player).run(interaction)
 
 async def __create_room(interaction: discord.Interaction) -> None:
-    updated = await update_players(interaction)
     user = interaction.user
+    guild = interaction.guild
+    channel = interaction.channel
+    updated = await update_players(user=user, guild=guild)
     player = PLAYERS[user.name]
     
     if updated:
         if not player.room:
-            player.room, _ = await room.create_room(interaction)
+            player.room, _ = await room.create_room(
+                player = user,
+                guild = guild,
+                channel = channel
+            )
             await __created_room(interaction, player.room)
             await player.room.add_user(user)
         elif interaction.channel.name == player.room.name:
@@ -75,7 +81,11 @@ async def __create_room(interaction: discord.Interaction) -> None:
         else:
             await __clearing_room(interaction, player.room)
     else:
-        player.room, created = await room.create_room(interaction)
+        player.room, created = await room.create_room(
+            player = user,
+            guild = guild,
+            channel = channel
+        )
         if created:
             await __created_room(interaction, player.room)
             await player.room.add_user(user)

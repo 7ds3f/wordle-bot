@@ -23,17 +23,19 @@ async def quit(interaction: discord.Interaction) -> None:
     # If the user hasn't been updated, then the user's information might be outdated.
     #   If the user's information is outdated, then we change it in real-time.
     #   Otherwise, quit the game the user is playing.
-    updated = await update_players(interaction)
     user = interaction.user
+    guild = interaction.guild
+    updated = await update_players(user=user, guild=guild)
     player = PLAYERS[user.name]
     
     if updated or not player.in_game:
         await __not_in_game(interaction)
         return
         
-    player.room = await room.search_room(interaction.guild, user)
+    player.room = await room.search_room(player=user, guild=guild)
+    player.in_game.update_statistics()
     player.in_game.terminate()
-    
+
     if not player.room:
         await __missing_room(interaction)
     else:

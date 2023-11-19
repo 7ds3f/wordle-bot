@@ -24,8 +24,10 @@ async def createroom(
         ephemeral = True,
         thinking = True
     )
-    updated = await update_players(interaction)
     user = interaction.user
+    guild = interaction.guild
+    channel = interaction.channel
+    updated = await update_players(user=user, guild=guild)
     player = PLAYERS[user.name]
     
     # If the user has been updated, then the information they hold will always be true.
@@ -37,7 +39,9 @@ async def createroom(
             await __room_already_exists(interaction, player.room)
         else:
             player.room, _ = await room.create_room(
-                interaction = interaction,
+                player = user,
+                guild = guild,
+                channel = channel,
                 room_type = private if private is None else (discord.ChannelType.private_thread if private else discord.ChannelType.public_thread)
             )
             await __created_room(interaction, player.room)
@@ -45,7 +49,9 @@ async def createroom(
             await player.room.add_user(user)
     else:
         player.room, created = await room.create_room(
-            interaction,
+            player = user,
+            guild = guild,
+            channel = channel,
             room_type = private if private is None else (discord.ChannelType.private_thread if private else discord.ChannelType.public_thread)
         )
         if created:

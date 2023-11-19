@@ -1,11 +1,13 @@
 import discord
 
-from ._config import default_config
+from .roomconfig import *
 
 async def create_room(
-    interaction: discord.Interaction,
-    duplicate: bool = False,
     *,
+    player: discord.Member | discord.User,
+    guild: discord.Guild,
+    channel: discord.Thread | discord.TextChannel,
+    duplicate: bool = False,
     room_type: discord.ChannelType | None = None,
     invitable: bool | None = None,
     auto_archive_duration: int | None = None,
@@ -18,25 +20,20 @@ async def create_room(
         The first element is the room that belongs to the player.
         The second element is whether that room was created or not.
     """
-    config = default_config()
     if room_type is None:
-        room_type = (discord.ChannelType.private_thread if config.getboolean('Private')
-                                                        else discord.ChannelType.public_thread)
+        room_type = (discord.ChannelType.private_thread if Config.private() else discord.ChannelType.public_thread)
     if invitable is None:
-        invitable = config.getboolean('Invitable')
+        invitable = Config.invitable()
     if auto_archive_duration is None:
-        auto_archive_duration = config.getint('AutoArchiveDuration')
+        auto_archive_duration = Config.auto_archive_duration()
     if slowmode_delay is None:
-        slowmode_delay = config.getint('SlowmodeDelay')
+        slowmode_delay = Config.slowmode_delay()
     
-    player = interaction.user
     if not duplicate:
-        guild = interaction.guild
-        room = await search_room(guild, player)
+        room = await search_room(player=player, guild=guild)
         if room:
             return (room, False)
     
-    channel = interaction.channel
     channel = channel.parent if isinstance(channel, discord.Thread) else channel
     return (await channel.create_thread(
         name = get_room_name(player),
@@ -47,8 +44,9 @@ async def create_room(
     ), True)
 
 async def search_room(
-    guild: discord.Guild,
-    player: discord.Member | discord.User
+    *,
+    player: discord.Member | discord.User,
+    guild: discord.Guild
 ) -> discord.Thread | None:
     """
     Searches for the player's room in the given guild.

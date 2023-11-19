@@ -5,8 +5,4 @@ from .wordle import (
     Wordle
 )
 
-from ._config import (
-    config,
-    dictionary_config,
-    emoji_config
-)
+from .wordle_config import WordleConfig

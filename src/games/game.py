@@ -1,11 +1,12 @@
 import discord
 import graphics
+import json
+import player
 import time
 import wordle
-import player
-import json
 
 from abc import abstractmethod
+from bottle import bot
 
 class Game:
     """
@@ -69,47 +70,25 @@ class Game:
         while not self.wordle.is_terminated():
             guess = await self.wait_for_guess(interaction)
             await self.make_guess(guess)
-        if self.player.in_game == self: self.player.in_game = None
-        
-        # update Player stats
-        # TODO: /quit command issue prevents forfeit message from being printed until another guess is entered
-        player_stats = self.player.stats["gamemodes"][self.mode]
 
-        # game termination stats
-        if self.has_won():
-            print(f"{self.player.user} has WON their Wordle game (mode:{self.mode}, hidden_word={self.wordle.hidden_word})")
-            player_stats["wins"] += 1
-            self.player.update_fastest_guess(self.mode, self.elapsed_time())
-        elif self.has_forfeited():
-            print(f"{self.player.user} has FORFEITED their Wordle game (mode:{self.mode}, hidden_word={self.wordle.hidden_word})")
-            player_stats["forfeits"] += 1
-        else:
-            print(f"{self.player.user} has LOST their Wordle game (mode:{self.mode}, hidden_word={self.wordle.hidden_word})")
-            player_stats["losses"] += 1
-        
-        # colored tile and guess count stats
-        for word in self.wordle.history:
-            player_stats["total_guesses"] += 1
-            for letter in word:
-                if letter.state == wordle.LetterState.GRAY: player_stats["gray_tiles"] += 1
-                elif letter.state == wordle.LetterState.YELLOW: player_stats["yellow_tiles"] += 1
-                elif letter.state == wordle.LetterState.GREEN: player_stats["green_tiles"] += 1
+        if self.player.in_game == self:
+            self.player.in_game = None
 
-        # WRITE updated stats to Player .json
-        self.player.rewrite_player_json()
+        if not self.has_forfeited():
+            self.update_statistics()
+            self.update_leaderboard()
 
-        # UPDATE leader board
-        self.update_leaderboard()
-            
     async def wait_for_guess(self, interaction: discord.Interaction) -> str:
         """
         Waits for a guess from the player. After they have made a guess, return the guess
         in the form of a string.
         """
         def check_guess(message: discord.Message) -> discord.Message | None:
+            if self.player.room is None:
+                return
             if message.channel.id == self.player.room.id and message.author == self.player.user:
                 return message
-        
+            
         guess: discord.Message = await interaction.client.wait_for('message', check=check_guess)
         if not self.wordle.is_terminated():
             await guess.delete()
@@ -123,7 +102,7 @@ class Game:
         try:
             squares = self.wordle.make_guess(guess)
             if squares is not None:
-                await self.update(squares)
+                await self.update_embed(squares)
                 await self.player.room.send(embeds=self.embeds)
         except wordle.InvalidGuess as e:
             await graphics.display_msg_embed(
@@ -133,7 +112,7 @@ class Game:
                 color = discord.Color.yellow()
             )
             
-    async def update(self, squares: list[wordle.SquareLetter]) -> None:
+    async def update_embed(self, squares: list[wordle.SquareLetter]) -> None:
         """
         Updates the state of this game. Mainly, it updates the UI or embed of this game.
         The game is updated after every guess made.
@@ -160,8 +139,37 @@ class Game:
                     inline = False
                 )
     
+    def update_statistics(self) -> None:
+        """
+        Updates the player's statistics.
+        """
+        player_stats = self.player.stats['gamemodes'][self.mode]
+
+        # game termination stats
+        if self.has_won():
+            player_stats['wins'] += 1
+            self.player.update_fastest_guess(self.mode, self.elapsed_time())
+        elif self.has_lost():
+            player_stats['losses'] += 1
+        else:
+            player_stats['forfeits'] += 1
+        
+        # colored tile and guess count stats
+        for word in self.wordle.history:
+            player_stats["total_guesses"] += 1
+            for letter in word:
+                match letter.state:
+                    case wordle.LetterState.GRAY:
+                        player_stats["gray_tiles"] += 1
+                    case wordle.LetterState.YELLOW:
+                        player_stats["yellow_tiles"] += 1
+                    case wordle.LetterState.GREEN:
+                        player_stats["green_tiles"] += 1
+
+        self.player.update_player_file()
+
     # TODO: FINISH THIS
-    def update_leaderboard(self):
+    def update_leaderboard(self) -> None:
         """
         Updates the leaderboard if the player surpasses someone else on the leaderboard.
         """
@@ -223,8 +231,7 @@ class Game:
     
     def terminate(self) -> None:
         """
-        Terminates the game. Winning, losing, or forfeiting will elicit termination of the
-        game.
+        Forcefully terminates the game.
         """
         self.wordle.terminate()
         self.player.in_game = None

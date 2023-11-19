@@ -1,9 +1,9 @@
 import json
 
-from ._config import emoji_config
+from .wordle_config import WordleConfig
 
 # Opens and loads the database that contains all the square letter emojis.
-__file = open(emoji_config()['SquareLetters'])
+__file = open(WordleConfig.square_letter_emojis())
 __data = json.load(__file)
 
 blank_square: str = __data['blank_square']

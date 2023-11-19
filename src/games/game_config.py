@@ -1,6 +1,7 @@
 import configparser
 import enchant
-import wordle
+
+from wordle import WordleConfig
 
 class GameConfig:
     NAME_KEY = 'Name'
@@ -26,13 +27,13 @@ class GameConfig:
         """
         Gets the default configuration for this gamemode.
         """
-        return wordle.config[f'Gamemode.{self.mode}']
+        return WordleConfig.config[f'Gamemode.{self.mode}']
     
     def get_dictionary(self) -> list[str]:
         """
         Gets the default dictionary for this gamemode.
         """
-        dict_config = wordle.dictionary_config()
+        dict_config = WordleConfig.dictionary_config
         dict_path = self.config[GameConfig.DICT_KEY]
         
         with open(dict_config[dict_path], 'r', encoding='utf-8') as file:

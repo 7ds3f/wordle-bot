@@ -6,10 +6,7 @@ from ..bot import bot
     name = 'help',
     description = 'Displays available commands'
 )
-async def help(
-    interaction: discord.Interaction,
-    user: discord.Member | discord.User = None
-) -> None:
+async def help(interaction: discord.Interaction) -> None:
     embed = discord.Embed(
         title = 'Help',
         description = 'List of all commands',

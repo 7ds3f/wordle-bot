@@ -18,9 +18,10 @@ async def delroom(interaction: discord.Interaction) -> None:
         ephemeral = True,
         thinking = True
     )
-    updated = await update_players(interaction)
     user = interaction.user
-    player = PLAYERS[user.name]
+    guild = interaction.guild
+    updated = await update_players(user=user, guild=guild)
+    player = PLAYERS[interaction.user.name]
     
     # If the user has been updated, then the information they hold will always be true.
     # If the user hasn't been updated, then the user's information might be outdated.
@@ -35,8 +36,8 @@ async def delroom(interaction: discord.Interaction) -> None:
             await __room_does_not_exist(interaction)
         return
     
-    player.room = await room.search_room(interaction.guild, user)
-    if not player.room:
+    player.room:discord.Thread | None = await room.search_room(player=user, guild=guild)
+    if player.room is None:
         await __room_does_not_exist(interaction)
         player.in_game = None
     elif player.in_game:

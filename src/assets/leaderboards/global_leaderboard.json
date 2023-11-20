@@ -2,9 +2,17 @@
     "gamemodes": {
         "Standard": {
             "wins": {
+                "svensix": 5,
+                "lil.eggie": 1
             },
-            "losses": {},
-            "fastest_guess": {}
+            "losses": {
+                "svensix": 1,
+                "lil.eggie": 1
+            },
+            "fastest_guess": {
+                "svensix": 2.423171043395996,
+                "lil.eggie": 37.41700792312622
+            }
         },
         "Daily": {
             "wins": {},

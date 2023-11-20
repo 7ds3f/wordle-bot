@@ -190,28 +190,30 @@ class Game:
         player_name = self.player.user.name
         player_stat_data = self.player.data["stats"][self.mode]
         for stat in leaderboard["gamemodes"][self.mode]:
-            player_list = leaderboard["gamemodes"][self.mode][stat]
-            if not player_list:
+            player_dict = leaderboard["gamemodes"][self.mode][stat]
+            # there are no records for this statistic
+            if not player_dict:
                 leaderboard["gamemodes"][self.mode][stat][player_name] = player_stat_data[stat]
+            # there are records for this statistic
             else:
-                # if the player has an existing, worse stat in the list, update it and re-sort the stats list
-                if player_name in player_list:
-                    if len(player_list) == 1:
-                        player_list[player_name] = player_stat_data[stat]
+                # player is already on the leaderboard for this statistic
+                if player_name in player_dict:
+                    if len(player_dict) == 1:
+                        player_dict[player_name] = player_stat_data[stat]
                     elif stat == "fastest_guess":
-                         if player_list[player_name] > player_stat_data[stat]:
-                             leaderboard["gamemodes"][self.mode][stat] = self.__insert_stat(player_list, stat, reverse=True)
+                         if player_dict[player_name] > player_stat_data[stat]:
+                             leaderboard["gamemodes"][self.mode][stat] = self.__insert_stat(player_dict, stat, reverse=True)
                     elif stat == "losses":
-                         if player_list[player_name] < player_stat_data[stat]:
-                             leaderboard["gamemodes"][self.mode][stat] = self.__insert_stat(player_list, stat, reverse=True)
+                         if player_dict[player_name] < player_stat_data[stat]:
+                             leaderboard["gamemodes"][self.mode][stat] = self.__insert_stat(player_dict, stat, reverse=True)
                     else:
-                        if player_list[player_name] < player_stat_data[stat]:
-                            leaderboard["gamemodes"][self.mode][stat] = self.__insert_stat(player_list, stat)
-                # if the player does not have a stat in the list, add it and re-sort the stats list
+                        if player_dict[player_name] < player_stat_data[stat]:
+                            leaderboard["gamemodes"][self.mode][stat] = self.__insert_stat(player_dict, stat)
+                # the player is not on the leaderboard yet for this statistic
                 else:
-                    leaderboard["gamemodes"][self.mode][stat] = self.__insert_stat(player_list, stat)
+                    leaderboard["gamemodes"][self.mode][stat] = self.__insert_stat(player_dict, stat)
 
-        #REWRITE global leaderboard .json
+        # REWRITE global leaderboard .json
         with open("src/assets/leaderboards/global_leaderboard.json", 'w') as file:
             json.dump(leaderboard, file, indent=4)
 
@@ -220,25 +222,24 @@ class Game:
     def __insert_stat(self, player_dict: dict, stat: str, *, reverse: bool=False) -> dict:
         """
         Inserts a player's stat into player_dict while maintaining sorted order by stat value.
+        Returned dictionary will be in reverse order if reverse=True.
 
         Returns:
-            Returns a new sorted dictionary containing the new player stat
+            Returns a new sorted dictionary containing the new player stat.
         """
-        player_stat_data = self.player.data["stats"][self.mode]
+        player_stat_val = self.player.data["stats"][self.mode][stat]
 
-        sorted_keys = sorted(player_dict, key=lambda k: (player_dict[k], k), reverse=True)
-        index = next((i for i, k in enumerate(sorted_keys) if player_dict[k] <= player_stat_data[stat]), len(sorted_keys))
-        sorted_keys.insert(index, self.player.user.name)
-
-        if reverse:
-            sorted_keys = reversed(sorted_keys)
+        player_names = sorted(player_dict, key=lambda k: (player_dict[k], k), reverse=True)
+        index = next((i for i, k in enumerate(player_names) if player_dict[k] <= player_stat_val), len(player_names))
+        player_names.insert(index, self.player.user.name)
 
         new_player_dict = dict()
-        for player_name in sorted_keys:
-            if player_name == self.player.user.name:
-                new_player_dict[player_name] = player_stat_data[stat]
-            else:
-                new_player_dict[player_name] = player_dict[player_name]
+        iterable = range(len(player_names)-1, -1, -1) if reverse else range(len(player_names))
+
+        for index in iterable:
+            player_name = player_names[index]
+            if player_name == self.player.user.name: new_player_dict[player_name] = player_stat_val
+            else: new_player_dict[player_name] = player_dict[player_name]
 
         return new_player_dict
 

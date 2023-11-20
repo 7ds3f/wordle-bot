@@ -155,4 +155,5 @@ class GamemodeConfig:
         """
         Returns the 'Language' key value.
         """
-        return enchant.Dict(config[f'Gamemode.{mode}']['Language'])
+        #return enchant.Dict(config[f'Gamemode.{mode}']['Language'])
+        return None

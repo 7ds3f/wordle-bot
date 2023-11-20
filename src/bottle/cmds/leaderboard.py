@@ -6,45 +6,25 @@ from ..bot import bot
 
 @bot.tree.command(
     name = 'leaderboard',
-    description = 'Displays the leaderboard of this server'
+    description = 'Displays the global or local Wordle leaderboard'
 )
 async def leaderboard(
     interaction: discord.Interaction,
-    gamemode: str = None
+    gamemode: str = None,
+    showoff: bool = False,
+    dropdown: bool = True,
+    display_global: bool = True
 ) -> None:
     # TODO: Add guild leaderboard support
     """
     Displays the global leaderboard
     """
-    # Prevents the bot from throwing an error for taking too long to send a response
-    await interaction.response.defer(
-        ephemeral = True,
-        thinking = True
-    )
-    # the dictionary representing the current leaderboard json file
+    await interaction.response.defer(ephemeral=(not showoff), thinking=True)
+    guild = interaction.guild
+
     # TODO: create a config for leaderboards and remove this hardcoded path
     with open("src/assets/leaderboards/global_leaderboard.json", 'r') as file:
         leaderboard = json.load(file)
-    # the message to contain the stats embed
-    message = None
-    # list of embeds for each gamemode
-    embeds = list()
-
-    # define leaderboard page buttons
-    class Buttons(discord.ui.View):
-        def __init__(self, *, timeout=180):
-            super().__init__(timeout=timeout)
-            self.current_embed = 0
-        @discord.ui.button(label="<",style=discord.ButtonStyle.gray)
-        async def left_button(self,interaction:discord.Interaction,button:discord.ui.Button):
-            self.current_embed = await get_next_index(button, self.current_embed, len(embeds))
-            await message.edit(embed=embeds[self.current_embed])
-            await interaction.response.defer()
-        @discord.ui.button(label=">",style=discord.ButtonStyle.gray)
-        async def right_button(self,interaction:discord.Interaction,button:discord.ui.Button):
-            self.current_embed = await get_next_index(button, self.current_embed, len(embeds))
-            await message.edit(embed=embeds[self.current_embed])
-            await interaction.response.defer()
 
     if not gamemode:
         await graphics.display_msg_embed(
@@ -65,47 +45,43 @@ async def leaderboard(
             color = discord.Color.red()
         )
         return
-    
-    # build stats embeds
-    embeds = [build_leaderboard_embed(interaction, leaderboard, gamemode, stat) for stat in leaderboard["gamemodes"][gamemode]]
 
-    # send the stats embed
-    if interaction.response.is_done():
-        message = await interaction.followup.send(
-            embed = embeds[0],
-            ephemeral = True,
-            view = Buttons()
-        )
+    if dropdown:
+        menus: dict[str, discord.Embed] = {}
+        options: dict[str, str] = {}
+
+        for stat in leaderboard["gamemodes"][gamemode]:
+            formatted_stat = format_stat(stat)
+            menus[formatted_stat] = build_leaderboard_embed(interaction, leaderboard, gamemode, stat, formatted_stat)
+            options[formatted_stat] = f'Display {formatted_stat.lower()} statistics'
+
+        await graphics.DropdownNavigationMenu.create_and_display(interaction=interaction, menus=menus, options=options)
     else:
-        message = await interaction.response.send_message(
-            embed = embeds[0],
-            ephemeral = True,
-            view = Buttons()
-        )
+        menus = [build_leaderboard_embed(interaction, leaderboard, gamemode, stat, format_stat(stat)) for stat in leaderboard["gamemodes"][gamemode]]
+        await graphics.ArrowNavigationMenu.create_and_display(interaction=interaction, menus=menus)
 
-async def get_next_index(button: discord.ui.Button, index: int, num_gamemodes: int) -> int:
+def format_stat(stat: str, *, title: bool=True) -> str:
     """
-    Returns the next valid index given the left or right button, current index, and 
-    number of available gamemodes.
-
-    Returns:
-        Returns a valid index.
+    Capitalizes a statistic and removes underscores
     """
-    if button.label == ">":
-        return (index + 1) % num_gamemodes
-    elif button.label == "<":
-        return (index - 1) % num_gamemodes
+    result = " ".join(stat.split('_'))
+    if title:
+        return result.title()
     else:
-        return index
+        return result
 
-def build_leaderboard_embed(interaction: discord.Interaction, leaderboard: dict(), gamemode: str, stat: str) -> discord.Embed:
+def build_leaderboard_embed(interaction: discord.Interaction, leaderboard: dict(),
+gamemode: str, stat: str, formatted_stat: str = None, length: int = 5) -> discord.Embed:
     """
     Builds a leaderboard embed for one gamemode in the leaderboard dictionary.
 
     Returns:
         Returns a Discord Embed.
     """
-    stat_name = " ".join(stat.split('_')).title()
+    if formatted_stat:
+        stat_name = formatted_stat
+    else:
+        stat_name = stat
 
     embed = discord.Embed(
             title = gamemode + " Wordle Leaderboard",
@@ -116,29 +92,26 @@ def build_leaderboard_embed(interaction: discord.Interaction, leaderboard: dict(
         name = interaction.user.display_name,
         icon_url = interaction.user.avatar.url
     )
-    #embed.set_thumbnail(url=interaction.client.user.avatar.url)
     embed.set_footer(text="Global Leaderboard")
 
     stat_players = leaderboard["gamemodes"][gamemode][stat]
     player_idx = 0
     for player in stat_players:
-
-        if stat == "fastest_guess":
-            pass
-        
+        if player_idx == length-1:
+            break
         if player_idx == 0:
             embed.add_field(
                 name = "",
-                value = f"**{player_idx + 1}. {player} - {stat_players[player]}**",
+                value = f"**{player_idx + 1}. {player} - {stat_players[player]:.2f} sec.**" if stat == "fastest_guess" else f"**{player_idx + 1}. {player} - {stat_players[player]}**",
                 inline = False
             )
         else:
             embed.add_field(
                 name = "",
-                value = f"**{player_idx + 1}.** {player} - {stat_players[player]}",
+                value = f"**{player_idx + 1}.** {player} - {stat_players[player]:.2f} sec." if stat == "fastest_guess" else f"**{player_idx + 1}.** {player} - {stat_players[player]}",
                 inline = True
             )
-        
+
         player_idx += 1
 
     return embed

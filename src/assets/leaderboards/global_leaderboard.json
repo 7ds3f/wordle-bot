@@ -2,8 +2,6 @@
     "gamemodes": {
         "Standard": {
             "wins": {
-                "svensix": 112,
-                "lil.eggie": 23
             },
             "losses": {},
             "fastest_guess": {}

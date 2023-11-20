@@ -13,11 +13,11 @@ class Game:
     This is an extension to the Wordle game. It allows for the creation of Wordle variants.
     There can only be one player playing a game instance. These games are timed to elevate
     a competitive environment.
-    
+
     The game class also adds extra functionality that the Wordle class does not offer. And
     that is explicitly stating whether the player has won, lost, or forfeited the game.
     """
-    
+
     def __init__(
         self,
         *,
@@ -30,27 +30,27 @@ class Game:
         'The player who is playing this game.'
         self.mode = mode
         'The mode of this game.'
-        
+
         self.wordle = wordle.Wordle(
             hidden_word = hidden_word,
             max_attempts = wordle.GamemodeConfig.max_attempts(mode),
             language = wordle.GamemodeConfig.language(mode) if language is None and wordle.GamemodeConfig.valid_words_only(mode) else language
         )
-        
+
         self.start_time: float | None = None
         'The time the game has started.'
         self.end_time: float | None = None
         'The time the game has ended.'
-        
+
         self.game_embed = self.create_game_embed()
         'The embed for the Wordle game.'
         self.embeds = [self.game_embed]
         'All embeds for this game.'
         self.message: discord.Message | None = None
         'The message the embeds are displayed in.'
-        
+
         self.player.in_game = self
-    
+
     @abstractmethod
     def rules(self) -> str:
         """
@@ -58,7 +58,7 @@ class Game:
         different rules.
         """
         pass
-    
+
     async def display_rules(self) -> None:
         """
         Displays the rules in an embed, and sends it to Discord.
@@ -69,7 +69,7 @@ class Game:
             description = self.rules(),
             color = discord.Color.blurple()
         )
-        
+
     async def run(self, interaction: discord.Interaction) -> None:
         """
         Runs the game until the player has ran out of attempts, has guess the word, or has
@@ -77,7 +77,7 @@ class Game:
         """
         print(f'{self.player.user} started a Wordle game (mode:{self.mode}, hidden_word={self.wordle.hidden_word})')
         self.start_time = time.time()
-        
+
         await self.display_rules()
         while not self.wordle.is_terminated():
             guess = await self.wait_for_guess(interaction)
@@ -100,7 +100,7 @@ class Game:
                 return
             if message.channel.id == self.player.room.thread.id and message.author == self.player.user:
                 return message
-            
+
         guess: discord.Message = await interaction.client.wait_for('message', check=check_guess)
         if not self.wordle.is_terminated():
             await guess.delete()
@@ -126,7 +126,7 @@ class Game:
                 description = e.message,
                 color = discord.Color.yellow()
             )
-    
+
     async def update_game_embed(self, squares: list[wordle.SquareLetter]) -> None:
         """
         Updates the embed of the Wordle game. This is called every time a guess is made.
@@ -138,7 +138,7 @@ class Game:
             value = emojis,
             inline = False
         )
-        
+
         if self.wordle.is_terminated():
             self.game_embed.color = discord.Color.green() if self.has_won() else discord.Color.red()
             [self.game_embed.remove_field(self.wordle.max_attempts) for _ in range(3)]
@@ -151,13 +151,13 @@ class Game:
                     value = keyboard[i],
                     inline = False
                 )
-        
+
     def update_stats(self) -> None:
         """
         Updates the player's statistics.
         """
         stats = self.player.data['stats'][self.mode]
-        
+
         if self.has_won():
             stats['wins'] += 1
             self.player.update_fastest_guess(self.mode, self.elapsed_time())
@@ -165,7 +165,7 @@ class Game:
             stats['losses'] += 1
         elif self.has_forfeited():
             stats['forfeits'] += 1
-            
+
         stats['total_guesses'] += len(self.wordle.history)
         for word in self.wordle.history:
             for letter in word:
@@ -176,18 +176,72 @@ class Game:
                         stats['yellow_tiles'] += 1
                     case wordle.LetterState.GREEN:
                         stats['green_tiles'] += 1
-        
+
         self.player.update_data_file()
 
-    # TODO: FINISH THIS
     def update_leaderboard(self) -> None:
         """
-        Updates the leaderboard if the player surpasses someone else on the leaderboard.
+        Updates the global leaderboard if the player surpasses someone else on the leaderboard.
         """
         # TODO: create a config for leaderboards and remove this hardcoded path
         with open("src/assets/leaderboards/global_leaderboard.json", 'r') as file:
             leaderboard = json.load(file)
-    
+
+        player_name = self.player.user.name
+        player_stat_data = self.player.data["stats"][self.mode]
+        for stat in leaderboard["gamemodes"][self.mode]:
+            player_list = leaderboard["gamemodes"][self.mode][stat]
+            if not player_list:
+                leaderboard["gamemodes"][self.mode][stat][player_name] = player_stat_data[stat]
+            else:
+                # if the player has an existing, worse stat in the list, update it and re-sort the stats list
+                if player_name in player_list:
+                    if len(player_list) == 1:
+                        player_list[player_name] = player_stat_data[stat]
+                    elif stat == "fastest_guess":
+                         if player_list[player_name] > player_stat_data[stat]:
+                             leaderboard["gamemodes"][self.mode][stat] = self.__insert_stat(player_list, stat, reverse=True)
+                    elif stat == "losses":
+                         if player_list[player_name] < player_stat_data[stat]:
+                             leaderboard["gamemodes"][self.mode][stat] = self.__insert_stat(player_list, stat, reverse=True)
+                    else:
+                        if player_list[player_name] < player_stat_data[stat]:
+                            leaderboard["gamemodes"][self.mode][stat] = self.__insert_stat(player_list, stat)
+                # if the player does not have a stat in the list, add it and re-sort the stats list
+                else:
+                    leaderboard["gamemodes"][self.mode][stat] = self.__insert_stat(player_list, stat)
+
+        #REWRITE global leaderboard .json
+        with open("src/assets/leaderboards/global_leaderboard.json", 'w') as file:
+            json.dump(leaderboard, file, indent=4)
+
+        return
+
+    def __insert_stat(self, player_dict: dict, stat: str, *, reverse: bool=False) -> dict:
+        """
+        Inserts a player's stat into player_dict while maintaining sorted order by stat value.
+
+        Returns:
+            Returns a new sorted dictionary containing the new player stat
+        """
+        player_stat_data = self.player.data["stats"][self.mode]
+
+        sorted_keys = sorted(player_dict, key=lambda k: (player_dict[k], k), reverse=True)
+        index = next((i for i, k in enumerate(sorted_keys) if player_dict[k] <= player_stat_data[stat]), len(sorted_keys))
+        sorted_keys.insert(index, self.player.user.name)
+
+        if reverse:
+            sorted_keys = reversed(sorted_keys)
+
+        new_player_dict = dict()
+        for player_name in sorted_keys:
+            if player_name == self.player.user.name:
+                new_player_dict[player_name] = player_stat_data[stat]
+            else:
+                new_player_dict[player_name] = player_dict[player_name]
+
+        return new_player_dict
+
     def build_keyboard(self) -> list[str]:
         """
         Builds a keyboard representation of all the letters used and their states. This
@@ -200,7 +254,7 @@ class Game:
             ["z", "x", "c", "v", "b", "n", "m"]
         ]
         return [''.join(self.wordle.letters_used[letter].emoji() for letter in keys) for keys in qwerty_keyboard]
-    
+
     def create_game_embed(self, color: discord.Color = discord.Color.yellow()) -> discord.Embed:
         """
         Creates a blank game state of this Wordle game. This is updated after every guess
@@ -211,14 +265,14 @@ class Game:
             name = self.player.user.display_name,
             icon_url = self.player.user.avatar.url
         )
-        
+
         blank_word = wordle.SquareLetter.blank_square * len(self.wordle.hidden_word)
         keyboard = self.build_keyboard()
-        
+
         [embed.add_field(name='', value=blank_word, inline=False) for _ in range(self.wordle.max_attempts)]
         [embed.add_field(name='', value=keys, inline=False) for keys in keyboard]
         return embed
-    
+
     def elapsed_time(self) -> float:
         """
         The time it has elapsed since the start of the game. This is usually used to measure
@@ -228,7 +282,7 @@ class Game:
         if self.end_time is None:
             return time.time() - self.start_time
         return self.end_time - self.start_time
-    
+
     def terminate(self) -> None:
         """
         Forcefully terminates the game.
@@ -236,19 +290,19 @@ class Game:
         self.wordle.terminate()
         self.update_stats()
         self.player.in_game = None
-        
+
     def has_won(self) -> bool:
         """
         Returns whether the player has won.
         """
         return self.wordle.has_guessed_word
-    
+
     def has_lost(self) -> bool:
         """
         Returns whether the player has lost.
         """
         return self.wordle.has_guessed_word is False and self.wordle.attempt_number == self.wordle.max_attempts
-    
+
     def has_forfeited(self) -> bool:
         """
         Returns whether the player has forfeited.

@@ -24,6 +24,12 @@ class Lobby(discord.ui.View):
         'The maximum number of players this lobby can have.'
         self.players_ready: int = 0
         'The number of players who have readied.'
+        self.finished = 0
+        
+        self.message: discord.Message = None
+        
+        self.games: list[game.Game] = []
+        self.winner = None
         
         self.add_player(player, True)
     
@@ -66,17 +72,20 @@ class Lobby(discord.ui.View):
         """
         Creates and displays the lobby
         """
+        lobby = Lobby(player=player, max_players=max_players)
         if interaction.response.is_done():
-            await interaction.followup.send(
+            lobby.message = await interaction.followup.send(
                 embed = Lobby.build_menu(interaction.user),
                 ephemeral = False,
-                view = Lobby(player=player, max_players=max_players)
+                view = lobby,
+                wait=True
             )
         else:
-            await interaction.response.send_message(
+            lobby.message = await interaction.response.send_message(
                 embed = Lobby.build_menu(interaction.user),
                 ephemeral = False,
-                view = Lobby(player=player, max_players=max_players)
+                view = lobby,
+                wait=True
             )
     
     def add_player(self, player: Player, owner: bool = False) -> dict[str, bool] | None:
@@ -152,7 +161,7 @@ class Lobby(discord.ui.View):
         await update_players(user=user, guild=guild)
         player = PLAYERS[user.name]
         
-        index = list(self.players.keys()).index(user.name)
+        index = list(self.players.keys()).index(player)
         menu = interaction.message.embeds[0]
         menu.set_field_at(
             index = index + 3,
@@ -163,10 +172,50 @@ class Lobby(discord.ui.View):
         self.players_ready += 1
         if self.players_ready == len(self.players):
             await interaction.message.delete()
-            
-        await interaction.response.edit_message(embed=menu)
+        else:    
+            await interaction.response.edit_message(embed=menu)
+        
         while self.players_ready != len(self.players):
             await asyncio.sleep(1)
         
         player.in_game = None
-        await (await game.create_game(interaction=interaction, mode=self.mode, player=player)).run(interaction)
+        wordle = await game.create_game(interaction=interaction, mode=self.mode, player=player)
+        await wordle.run(interaction)
+        
+        self.finished += 1
+        self.games.append(wordle)
+        
+        if self.finished == len(self.players):
+            self.shortest_time = None
+            self.least_tries = None
+            for g in self.games:
+                if self.least_tries is None:
+                    self.winner = g.player
+                    self.shortest_time = g.elapsed_time()
+                    self.least_tries = g.wordle.attempt_number
+                elif g.wordle.attempt_number == self.least_tries:
+                    if g.elapsed_time() < self.shortest_time:
+                        self.winner = g.player
+                        self.shortest_time = g.elapsed_time()
+                        self.least_tries = g.wordle.attempt_number
+                elif g.wordle.attempt_number < self.least_tries:
+                    self.winner = g.player
+                    self.shortest_time = g.elapsed_time()
+                    self.least_tries = g.wordle.attempt_number
+        else:
+            await graphics.display_msg_embed(
+                obj = player.room.thread,
+                title = 'Waiting...',
+                description = 'Please wait for other players to finish...',
+                color = discord.Color.greyple()
+            )
+        
+        while self.finished != len(self.players):
+            await asyncio.sleep(1)
+            
+        await graphics.display_msg_embed(
+            obj = player.room.thread,
+            title = f'{self.winner.user.name} has won',
+            description = f'They took {self.least_tries} attempts and solved within {self.shortest_time:.2f} seconds',
+            color = discord.Color.greyple()
+        )

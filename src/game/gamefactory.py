@@ -1,5 +1,6 @@
 import discord
 import room
+import lobby
 
 from .game import Game, graphics, player
 from .modes import *

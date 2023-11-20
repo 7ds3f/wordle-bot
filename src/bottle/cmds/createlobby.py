@@ -22,8 +22,13 @@ async def createlobby(interaction: discord.Interaction) -> None:
     await update_players(interaction=interaction)
     player = PLAYERS[interaction.user.name]
     
-    await interaction.followup.send(
-        embed = lobby.Lobby.build_menu(interaction.user),
-        ephemeral = False,
-        view = lobby.Lobby(player=player)
+    await lobby.Lobby.create_and_display(
+        interaction=interaction,
+        player = player
     )
+    
+    # await interaction.followup.send(
+    #     embed = lobby.Lobby.build_menu(interaction.user),
+    #     ephemeral = False,
+    #     view = lobby.Lobby(player=player)
+    # )

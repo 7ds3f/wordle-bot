@@ -2,8 +2,8 @@
     "gamemodes": {
         "Standard": {
             "wins": {
-                "svensix": 5,
-                "lil.eggie": 1
+                "svensix": 6,
+                "lil.eggie": 6
             },
             "losses": {
                 "svensix": 1,
@@ -11,7 +11,7 @@
             },
             "fastest_guess": {
                 "svensix": 2.423171043395996,
-                "lil.eggie": 37.41700792312622
+                "lil.eggie": 2.9181792736053467
             }
         },
         "Daily": {
@@ -20,9 +20,18 @@
             "fastest_guess": {}
         },
         "Feudle": {
-            "wins": {},
-            "losses": {},
-            "fastest_guess": {}
+            "wins": {
+                "svensix": 1,
+                "lil.eggie": 1
+            },
+            "losses": {
+                "svensix": 0,
+                "lil.eggie": 0
+            },
+            "fastest_guess": {
+                "svensix": 14.35465931892395,
+                "lil.eggie": 5.8940207958221436
+            }
         },
         "Multiplayer": {
             "wins": {},

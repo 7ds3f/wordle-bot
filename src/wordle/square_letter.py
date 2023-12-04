@@ -1,3 +1,4 @@
+from color import Color
 from .letter_state import *
 
 class SquareLetter:
@@ -47,4 +48,18 @@ class SquareLetter:
         hash = (hash * 7) + self.value.__hash__
         hash = (hash * 7) + self.state.__hash__
         return hash
+
+    def __str__(self):
+        return f"({self.value}, {self.state.name})"
+
+    def colored_text(self):
+        match self.state:
+            case LetterState.BLACK:
+                return Color.styletext(self.value, Color.Foreground.BLACK)
+            case LetterState.GRAY:
+                return Color.styletext(self.value, Color.Foreground.LIGHT_GRAY)
+            case LetterState.YELLOW:
+                return Color.styletext(self.value, Color.Foreground.GOLD)
+            case LetterState.GREEN:
+                return Color.styletext(self.value, Color.Foreground.LIME)
     

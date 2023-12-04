@@ -5,6 +5,7 @@ import json
 import player
 import time
 import wordle
+import log
 
 from abc import abstractmethod
 
@@ -75,7 +76,7 @@ class Game:
         Runs the game until the player has ran out of attempts, has guess the word, or has
         forfeited.
         """
-        print(f'{self.player.user} started a Wordle game (mode:{self.mode}, hidden_word={self.wordle.hidden_word})')
+        log.game.info(f'{self.player.user} started a Wordle game (mode:{self.mode}, hidden_word={self.wordle.hidden_word})')
         self.start_time = time.time()
 
         await self.display_rules()
@@ -161,10 +162,13 @@ class Game:
         if self.has_won():
             stats['wins'] += 1
             self.player.update_fastest_guess(self.mode, self.elapsed_time())
+            log.game.info(f"{self.player.user.name} has won their game (mode:{self.mode}, hidden_word={self.wordle.hidden_word})")
         elif self.has_lost():
             stats['losses'] += 1
+            log.game.info(f"{self.player.user.name} has lost their game (mode:{self.mode}, hidden_word={self.wordle.hidden_word})")
         elif self.has_forfeited():
             stats['forfeits'] += 1
+            log.game.info(f"{self.player.user.name} has forfeited their game (mode:{self.mode}, hidden_word={self.wordle.hidden_word})")
 
         stats['total_guesses'] += len(self.wordle.history)
         for word in self.wordle.history:

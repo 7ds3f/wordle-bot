@@ -2,9 +2,10 @@ import atexit
 import bottle
 import signal
 import player
+import log
 
 def handle_termination_signal(signum: signal.Signals, frame):
-    print(f'Received termination signal ({signum}). Exiting...')
+    log.bottle.info(f'Received termination signal ({signum}). Exiting...')
     atexit._run_exitfuncs()
     exit()
 

@@ -1,3 +1,4 @@
 from .on_connect import on_connect
 from .on_disconnect import on_disconnect
 from .on_ready import on_ready
+from .on_error import on_error

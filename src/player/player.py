@@ -91,11 +91,11 @@ async def update_players(
     
     if player is None:
         player = Player(user=user, guild=guild)
-        # player.room.thread = await room.search_room(user=user, guild=guild)
+        player.room.thread = await room.search_room(user=user, guild=guild)
         PLAYERS[user.name] = player
     elif player.guild != guild:
         player.guild = guild
-        # player.room.thread = await room.search_room(user=user, guild=guild)
+        player.room.thread = await room.search_room(user=user, guild=guild)
         if player.in_game:
             player.in_game.terminate()
 

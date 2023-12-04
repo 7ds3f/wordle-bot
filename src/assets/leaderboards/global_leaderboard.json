@@ -15,14 +15,20 @@
             }
         },
         "Daily": {
-            "wins": {},
-            "losses": {},
-            "fastest_guess": {}
+            "wins": {
+                "lil.eggie": 2
+            },
+            "losses": {
+                "lil.eggie": 0
+            },
+            "fastest_guess": {
+                "lil.eggie": 10.119954586029053
+            }
         },
         "Feudle": {
             "wins": {
-                "svensix": 1,
-                "lil.eggie": 1
+                "lil.eggie": 5,
+                "svensix": 1
             },
             "losses": {
                 "svensix": 0,

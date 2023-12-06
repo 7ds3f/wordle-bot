@@ -9,14 +9,14 @@ Start playing by inviting BOTTLE to your discord server: https://discord.com/api
 
 
 
-## How To Run BOTTLE
+## How To Create Your Own BOTTLE
 - First, open command prompt, and clone the repository via `git clone https://github.com/7ds3f/wordle-bot.git BOTTLE`.
 
 - Next, in command prompt, change the current directory to wherever you saved the repository. For a tutorial, visit [here](https://www.howtogeek.com/659411/how-to-change-directories-in-command-prompt-on-windows-10/)
 
 - Then, install [Python 3.11.6](https://www.python.org/downloads/release/python-3116/) and the required packages via `pip install -r requirements.txt`. You can check out the [Requirements](#requirements) for additional information.
 
-- Now, build a Discord bot and save its token. We will be needed soon to run the bot. For a tutorial, visit [here](https://discordgsm.com/guide/how-to-get-a-discord-bot-token). A warning from Discord:
+- Now, build a Discord bot and save its token. We will be needing this soon to run the bot. For a tutorial, visit [here](https://discordgsm.com/guide/how-to-get-a-discord-bot-token). A warning from Discord:
 
 ```
 It should be worth noting that this token is essentially your bot’s password. You should never share this with someone else. In doing so, someone can log in to your bot and do malicious things, such as leaving servers, ban all members inside a server, or pinging everyone maliciously.
@@ -30,7 +30,7 @@ If you accidentally leaked your token, click the “Regenerate” button as soon
 
 - Lastly, create a `.env` file in `BOTTLE\src\assets\`, and enter `DISCORD_TOKEN = <your token>`. Obviously, replace `<your token>` with the token you saved previously.
 
-- Now you can run your bot by running the `run.bat` file inside the repository. Or you can run it by manually entering `python src/main.py || python3 src/main.py`. To get started with BOTTLE, use `/help` in Discord to see the list of available commands. To stop the bot from running, kill the terminal.
+- Now you can run your bot by running the `run.bat` file inside the repository. Or you can run it by manually entering `python src/main.py || python3 src/main.py` in command prompt. To get started with BOTTLE, use `/help` in Discord to see the list of available commands. To stop the bot from running, kill the terminal.
 
 - Note that emojis will not be displayed correctly since your bot does not know it exists. This is something we can't control since that's how Discord bots are designed. For instructions, visit [How To Add Custom Emojis (Unavailable)](#how-to-add-custom-emojis-(unavailable)). The section says "unavailable," but the section has all the information needed for what we are trying to do.
 

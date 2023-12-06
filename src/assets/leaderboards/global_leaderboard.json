@@ -2,41 +2,53 @@
     "gamemodes": {
         "Standard": {
             "wins": {
+                "lil.eggie": 8,
                 "svensix": 6,
-                "lil.eggie": 6
+                "casterninja": 0,
+                "captain_pig4": 0,
+                "auntiej": 0
             },
             "losses": {
-                "svensix": 1,
-                "lil.eggie": 1
+                "captain_pig4": 3,
+                "lil.eggie": 2,
+                "auntiej": 5,
+                "casterninja": 5,
+                "svensix": 6
             },
             "fastest_guess": {
+                "lil.eggie": 2.9181792736053467,
                 "svensix": 2.423171043395996,
-                "lil.eggie": 2.9181792736053467
+                "captain_pig4": -1,
+                "casterninja": -1,
+                "auntiej": -1
             }
         },
         "Daily": {
             "wins": {
+                "svensix": 2,
                 "lil.eggie": 2
-            },
-            "losses": {
-                "lil.eggie": 0
-            },
-            "fastest_guess": {
-                "lil.eggie": 10.119954586029053
-            }
-        },
-        "Feudle": {
-            "wins": {
-                "lil.eggie": 5,
-                "svensix": 1
             },
             "losses": {
                 "svensix": 0,
                 "lil.eggie": 0
             },
             "fastest_guess": {
-                "svensix": 14.35465931892395,
-                "lil.eggie": 5.8940207958221436
+                "svensix": 9.812709093093872,
+                "lil.eggie": 10.119954586029053
+            }
+        },
+        "Feudle": {
+            "wins": {
+                "lil.eggie": 5,
+                "svensix": 3
+            },
+            "losses": {
+                "svensix": 0,
+                "lil.eggie": 0
+            },
+            "fastest_guess": {
+                "lil.eggie": 5.8940207958221436,
+                "svensix": 9.784578084945679
             }
         },
         "Multiplayer": {

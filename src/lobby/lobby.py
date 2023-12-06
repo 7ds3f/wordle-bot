@@ -189,6 +189,8 @@ class Lobby(discord.ui.View):
             self.shortest_time = None
             self.least_tries = None
             for g in self.games:
+                if not g.has_won():
+                    continue
                 if self.least_tries is None:
                     self.winner = g.player
                     self.shortest_time = g.elapsed_time()
@@ -212,10 +214,18 @@ class Lobby(discord.ui.View):
         
         while self.finished != len(self.players):
             await asyncio.sleep(1)
-            
-        await graphics.display_msg_embed(
-            obj = player.room.thread,
-            title = f'{self.winner.user.name} has won',
-            description = f'They took {self.least_tries} attempts and solved within {self.shortest_time:.2f} seconds',
-            color = discord.Color.greyple()
-        )
+        
+        if self.winner is None:
+            await graphics.display_msg_embed(
+                obj = player.room.thread,
+                title = f'No one has won',
+                description = '',
+                color = discord.Color.greyple()
+            )
+        else:
+            await graphics.display_msg_embed(
+                obj = player.room.thread,
+                title = f'{self.winner.user.name} has won',
+                description = f'They took {self.least_tries} attempts and solved within {self.shortest_time:.2f} seconds',
+                color = discord.Color.greyple()
+            )

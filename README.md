@@ -32,7 +32,7 @@ If you accidentally leaked your token, click the “Regenerate” button as soon
 
 - Now you can run your bot by running the `run.bat` file inside the repository. Or you can run it by manually entering `python src/main.py || python3 src/main.py` in command prompt. To get started with BOTTLE, use `/help` in Discord to see the list of available commands. To stop the bot from running, kill the terminal.
 
-- Note that emojis will not be displayed correctly since your bot does not know it exists. This is something we can't control since that's how Discord bots are designed. For instructions, visit [How To Add Custom Emojis (Unavailable)](#how-to-add-custom-emojis-(unavailable)). The section says "unavailable," but the section has all the information needed for what we are trying to do.
+- Note that emojis will not be displayed correctly since your bot does not know they exist. This is something we can't control since that's how Discord bots are designed. For instructions, visit [How To Add Custom Emojis (Unavailable)](#how-to-add-custom-emojis-(unavailable)). The section says "unavailable," but the section has all the information needed for what we are trying to do.
 
 
 

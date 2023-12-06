@@ -14,7 +14,7 @@ Start playing by inviting BOTTLE to your discord server: https://discord.com/api
 
 - Next, in command prompt, change the current directory to wherever you saved the repository. For a tutorial, visit [here](https://www.howtogeek.com/659411/how-to-change-directories-in-command-prompt-on-windows-10/)
 
-- Then, install [Python 3.11.6](https://www.python.org/downloads/release/python-3116/) and the required packages via `pip install -r requirements.txt`. You can check out #requirements for additional information.
+- Then, install [Python 3.11.6](https://www.python.org/downloads/release/python-3116/) and the required packages via `pip install -r requirements.txt`. You can check out the [Requirements](#requirements) for additional information.
 
 - Now, build a Discord bot and save its token. We will be needed soon to run the bot. For a tutorial, visit [here](https://discordgsm.com/guide/how-to-get-a-discord-bot-token). A warning from Discord:
 
@@ -32,7 +32,7 @@ If you accidentally leaked your token, click the “Regenerate” button as soon
 
 - Now you can run your bot by running the `run.bat` file inside the repository. Or you can run it by manually entering `python src/main.py || python3 src/main.py`. To get started with BOTTLE, use `/help` in Discord to see the list of available commands. To stop the bot from running, kill the terminal.
 
-- Note that emojis will not be displayed correctly since your bot does not know it exists. This is something we can't control since that's how Discord bots are designed. For instructions, visit #how-to-add-custom-emojis-(unavailable). The section says "unavailable," but the section has all the information needed for what we are trying to do.
+- Note that emojis will not be displayed correctly since your bot does not know it exists. This is something we can't control since that's how Discord bots are designed. For instructions, visit [How To Add Custom Emojis (Unavailable)](#how-to-add-custom-emojis-(unavailable)). The section says "unavailable," but the section has all the information needed for what we are trying to do.
 
 
 

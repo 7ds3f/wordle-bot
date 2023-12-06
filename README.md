@@ -47,7 +47,7 @@ BOTTLE requires a few python packages:
 
 
 
-## How To Add Custom Emojis
+## How To Add Custom Emojis (Unavailable)
 - First, you need to add the emojis yourself to the server the bot is in. For a tutorial, visit [here](https://support.discord.com/hc/en-us/articles/360036479811-Custom-Emojis#:~:text=To%20upload%20custom%20emojis%2C%20choose,to%20upload%20a%20custom%20emoji.).
 - Next, for all the emojis you want BOTTLE to use, you need their IDs. To get their IDs, type `\<emoji>` in Discord, where `<emoji>` is the emoji you want to add. For example, let's say I want to add the *gray letter A* emoji. To display this emoji for everyone to see in Discord, I would type `:gray_letter_a:`. To get the ID of this emoji, I would type `\:gray_letter_a:`. Once entered, copy the ID in the text channel Discord has sent you.
 - Then, open File Explorer, locate the repository that contains the bot, and path to the emojis folder: `BOTTLE\src\assets\emojis`. Currently, you cannot add custom emojis. However, you can change the emojis BOTTLE currently uses by changing the emojis in the `square_letters.json` file. To do this, just replace one of the entries with an emoji ID.

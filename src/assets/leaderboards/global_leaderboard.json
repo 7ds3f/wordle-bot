@@ -26,15 +26,18 @@
         "Daily": {
             "wins": {
                 "svensix": 2,
-                "lil.eggie": 2
+                "lil.eggie": 2,
+                "kuridango": 1
             },
             "losses": {
+                "kuridango": 0,
                 "svensix": 0,
                 "lil.eggie": 0
             },
             "fastest_guess": {
-                "svensix": 9.812709093093872,
-                "lil.eggie": 10.119954586029053
+                "kuridango": 75.30960321426392,
+                "lil.eggie": 10.119954586029053,
+                "svensix": 9.812709093093872
             }
         },
         "Feudle": {

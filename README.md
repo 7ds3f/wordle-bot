@@ -4,11 +4,6 @@ A Discord Wordle bot.
 
 Created by EggieVAL, CasterNinja, LucaVits, SoumayahIlias, timcuber37, and 7ds3f.
 
-## Start Playing
-Start playing by inviting BOTTLE to your discord server: https://discord.com/api/oauth2/authorize?client_id=1156600636545179679&permissions=1084479764544&scope=bot
-
-
-
 ## How To Create Your Own BOTTLE
 - First, open command prompt, and clone the repository via `git clone https://github.com/7ds3f/wordle-bot.git BOTTLE`.
 
